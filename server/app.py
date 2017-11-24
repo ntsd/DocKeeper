@@ -58,8 +58,7 @@ class ParserRuleResource(Resource):
 class ParserResource(Resource):
     document = models.Parser
     related_resources = {
-        'parserRules': ParserRuleResource,
-        'documents': DocumentResource
+        'parserRules': ParserRuleResource
     }
     filters = {
         'name': [ops.Exact, ops.Startswith],

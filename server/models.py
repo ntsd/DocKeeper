@@ -18,9 +18,16 @@ class User(db.Document):
     # pub_date = db.DateTimeField(default=datetime.datetime.now)
 
 
+class ParserRef(db.EmbeddedDocument):
+    name = db.StringField()
+    id = db.ReferenceField(Parser)
+
+
 class Document(db.Document):
     name = db.StringField()
     path = db.StringField()
+    uploadBy = db.ReferenceField(User)
+    parser = db.EmbeddedDocumentField(ParserRef)
 
 
 class ParserRuleType(db.EmbeddedDocument):
@@ -40,6 +47,5 @@ class Parser(db.Document):
     editors = db.ListField(db.ReferenceField(User))
     viewers = db.ListField(db.ReferenceField(User))
     tags = db.ListField(db.StringField())
-    documents = db.ListField(db.ReferenceField(Document))
     parserRules = db.ListField(db.ReferenceField(ParserRule))
     classificationData = db.BinaryField()

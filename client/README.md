@@ -1,21 +1,3 @@
-# dockeeper-client
+# Deprecated! All files will be moved to new repository.
 
-> A Vue.js project
-
-## Build Setup
-
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+We decided to move Vue Version to separate repository. You can find all files here: [CoreUI Vue Version](https://github.com/mrholek/CoreUI-Vue)
