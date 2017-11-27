@@ -26,6 +26,7 @@
               <b-pagination :total-rows="totalRows" :per-page="perPage" v-model="currentPage" />
             </div>
             <div class="col-sm-4 text-md-right">
+              <router-link to="newparser"><b-button @click="">New Parser</b-button></router-link>
               <b-button :disabled="!sortBy" @click="sortBy = null">Clear Sort</b-button>
             </div>
           </div>
@@ -41,11 +42,24 @@
                    :sort-desc.sync="sortDesc"
                    @filtered="onFiltered"
           >
-            <template slot="name" scope="row">{{row.value.first}} {{row.value.last}}</template>
-            <template slot="isActive" scope="row">{{row.value?'Yes :)':'No :('}}</template>
+            <template slot="name" scope="row">{{row.value}}</template>
+            <template slot="owners" scope="row">
+              <div v-for="user in row.value">
+                {{user.username}}
+              </div>
+            </template>
+            <template slot="tags" scope="row">
+              <div v-for="tag in row.value">
+                {{tag}}
+              </div>
+            </template>
+            <template slot="updated_at" scope="row">
+              {{moment(row.value.$date).format('YYYY-MM-DD')}}
+            </template>
             <template slot="actions" scope="row">
+              <b-btn size="sm">Edit</b-btn>
               <!-- We use click.stop here to prevent a 'row-clicked' event from also happening -->
-              <b-btn size="sm" @click.stop="details(row.item,row.index,$event.target)">Details</b-btn>
+              <!--<b-btn size="sm" @click.stop="details(row.item,row.index,$event.target)">Details</b-btn>-->
             </template>
           </b-table>
 
@@ -65,37 +79,123 @@
 </template>
 
 <script>
+  /*eslint-disable */
   const items = [
-    { isActive: true, age: 40, name: { first: 'Dickerson', last: 'Macdonald' } },
-    { isActive: false, age: 21, name: { first: 'Larsen', last: 'Shaw' } },
-    { _rowVariant: 'success',
-      isActive: false,
-      age: 9,
-      name: { first: 'Mini', last: 'Navarro' }
+    {
+      "_id": {
+        "$oid": "5a1b6e635363a30fcc18701a"
+      },
+      "created_at": {
+        "$date": 1511772371135
+      },
+      "editors": [],
+      "name": "parser1",
+      "owners": [
+        {
+          "id": {
+            "$oid": "5a1b694e5363a32e84e153fe"
+          },
+          "username": "ntsd"
+        }
+      ],
+      "parserRules": [
+        {
+          "data": "10,50,10,50",
+          "name": "rule1",
+          "ruleType": {
+            "name": "boundary"
+          }
+        }
+      ],
+      "tags": [
+        "invoice",
+        "company"
+      ],
+      "updated_at": {
+        "$date": 1511772371136
+      },
+      "viewers": []
     },
-    { isActive: false, age: 89, name: { first: 'Geneva', last: 'Wilson' } },
-    { isActive: true, age: 38, name: { first: 'Jami', last: 'Carney' } },
-    { isActive: false, age: 27, name: { first: 'Essie', last: 'Dunlap' } },
-    { isActive: true, age: 40, name: { first: 'Thor', last: 'Macdonald' } },
-    { _cellVariants: { age: 'danger', isActive: 'warning' },
-      isActive: true,
-      age: 87,
-      name: { first: 'Larsen', last: 'Shaw' }
+    {
+      "_id": {
+        "$oid": "5a1b6f175363a3324cc8027d"
+      },
+      "created_at": {
+        "$date": 1511772551920
+      },
+      "editors": [],
+      "name": "parser2",
+      "owners": [
+        {
+          "id": {
+            "$oid": "5a1b694e5363a32e84e153fe"
+          },
+          "username": "ntsd"
+        }
+      ],
+      "parserRules": [
+        {
+          "data": "10,50,10,50",
+          "name": "rule1",
+          "ruleType": {
+            "name": "boundary"
+          }
+        }
+      ],
+      "tags": [
+        "invoice",
+        "company"
+      ],
+      "updated_at": {
+        "$date": 1511772551921
+      },
+      "viewers": []
     },
-    { isActive: false, age: 26, name: { first: 'Mitzi', last: 'Navarro' } },
-    { isActive: false, age: 22, name: { first: 'Genevieve', last: 'Wilson' } },
-    { isActive: true, age: 38, name: { first: 'John', last: 'Carney' } },
-    { isActive: false, age: 29, name: { first: 'Dick', last: 'Dunlap' } }
-  ]
+    {
+      "_id": {
+        "$oid": "5a1b6f3d5363a3324cc8027e"
+      },
+      "created_at": {
+        "$date": 1511772589453
+      },
+      "editors": [],
+      "name": "parser3",
+      "owners": [
+        {
+          "id": {
+            "$oid": "5a1b694e5363a32e84e153fe"
+          },
+          "username": "ntsd"
+        }
+      ],
+      "parserRules": [
+        {
+          "data": "10,50,10,50",
+          "name": "rule1",
+          "ruleType": {
+            "name": "boundary"
+          }
+        }
+      ],
+      "tags": [
+        "recipt"
+      ],
+      "updated_at": {
+        "$date": 1511772589454
+      },
+      "viewers": []
+    }
+  ];
 
   export default {
     data () {
       return {
         items: items,
         fields: {
-          name: { label: 'Person Full name', sortable: true },
-          age: { label: 'Person age', sortable: true, 'class': 'text-center' },
-          isActive: { label: 'is Active' },
+          name: { label: 'parser name', sortable: true },
+          owners: { label: 'owners', sortable: true, 'class': 'text-center' },
+          tags: { label: 'tags', sortable: true },
+          updated_at: {label: 'last updated', sortable: true },
           actions: { label: 'Actions' }
         },
         currentPage: 1,
@@ -125,4 +225,5 @@
       }
     }
   }
+  /*eslint-enable */
 </script>

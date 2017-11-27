@@ -9,6 +9,8 @@ import Dashboard from '@/views/Dashboard'
 
 import Parsers from '@/views/parsers/Parsers'
 
+import NewParser from '@/views/parsers/NewParser'
+
 import Documents from '@/views/documents/Documents'
 
 // Views - Pages
@@ -39,6 +41,11 @@ export default new Router({
           path: 'parsers',
           name: 'Parsers',
           component: Parsers
+        },
+        {
+          path: 'newparser',
+          name: 'New Parser',
+          component: NewParser
         },
         {
           path: 'documents',

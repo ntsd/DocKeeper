@@ -4,8 +4,11 @@ import Vue from 'vue'
 import BootstrapVue from 'bootstrap-vue'
 import App from './App'
 import router from './router'
+import moment from 'moment'
 
 Vue.use(BootstrapVue)
+
+Vue.prototype.moment = moment
 
 /* eslint-disable no-new */
 new Vue({
