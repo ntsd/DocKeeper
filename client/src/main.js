@@ -3,6 +3,8 @@
 import Vue from 'vue'
 import BootstrapVue from 'bootstrap-vue'
 import App from './App'
+import { sync } from 'vuex-router-sync'
+import store from './store'
 import router from './router'
 import moment from 'moment'
 
@@ -10,10 +12,13 @@ Vue.use(BootstrapVue)
 
 Vue.prototype.moment = moment
 
+sync(store, router)
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
   router,
+  store,
   template: '<App/>',
   components: {
     App

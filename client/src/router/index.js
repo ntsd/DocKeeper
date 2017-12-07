@@ -6,12 +6,10 @@ import Full from '@/containers/Full'
 
 // Views
 import Dashboard from '@/views/Dashboard'
-
 import Parsers from '@/views/parsers/Parsers'
-
 import NewParser from '@/views/parsers/NewParser'
-
 import Documents from '@/views/documents/Documents'
+import UploadDocument from '@/views/documents/UploadDocument'
 
 // Views - Pages
 import Page404 from '@/views/pages/Page404'
@@ -19,9 +17,11 @@ import Page500 from '@/views/pages/Page500'
 import Login from '@/views/pages/Login'
 import Register from '@/views/pages/Register'
 
+import {isLogin} from '../utils/authService'
+
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
   mode: 'hash', // Demo is living in GitHub.io, so required!
   linkActiveClass: 'open active',
   scrollBehavior: () => ({ y: 0 }),
@@ -31,6 +31,9 @@ export default new Router({
       redirect: '/dashboard',
       name: 'Home',
       component: Full,
+      meta: {
+        requiresAuth: true
+      },
       children: [
         {
           path: 'dashboard',
@@ -51,6 +54,11 @@ export default new Router({
           path: 'documents',
           name: 'Documents',
           component: Documents
+        },
+        {
+          path: 'uploaddocument',
+          name: 'uploaddocument',
+          component: UploadDocument
         }
       ]
     },
@@ -86,3 +94,23 @@ export default new Router({
     }
   ]
 })
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.goTop)) {
+    window.scroll(0, 0)
+  }
+
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!isLogin()) {
+      return next({path: '/pages/login'})
+    }
+  }
+  if (to.matched.some(record => record.meta.requiresNotAuth)) {
+    if (isLogin()) {
+      return next({path: '/'})
+    }
+  }
+  next()
+})
+
+export default router

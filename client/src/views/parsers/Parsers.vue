@@ -23,7 +23,7 @@
 
           <div class="row my-1">
             <div class="col-sm-8">
-              <b-pagination :total-rows="totalRows" :per-page="perPage" v-model="currentPage" />
+              <b-pagination :total-rows=parserList.length :per-page="perPage" v-model="currentPage" />
             </div>
             <div class="col-sm-4 text-md-right">
               <router-link to="newparser"><b-button @click="">New Parser</b-button></router-link>
@@ -33,7 +33,7 @@
 
           <!-- Main table element -->
           <b-table striped hover show-empty
-                   :items="items"
+                   :items=parserList
                    :fields="fields"
                    :current-page="currentPage"
                    :per-page="perPage"
@@ -41,6 +41,7 @@
                    :sort-by.sync="sortBy"
                    :sort-desc.sync="sortDesc"
                    @filtered="onFiltered"
+                   ref="table"
           >
             <template slot="name" scope="row">{{row.value}}</template>
             <template slot="owners" scope="row">
@@ -80,117 +81,23 @@
 
 <script>
   /*eslint-disable */
-  const items = [
-    {
-      "_id": {
-        "$oid": "5a1b6e635363a30fcc18701a"
-      },
-      "created_at": {
-        "$date": 1511772371135
-      },
-      "editors": [],
-      "name": "parser1",
-      "owners": [
-        {
-          "id": {
-            "$oid": "5a1b694e5363a32e84e153fe"
-          },
-          "username": "ntsd"
-        }
-      ],
-      "parserRules": [
-        {
-          "data": "10,50,10,50",
-          "name": "rule1",
-          "ruleType": {
-            "name": "boundary"
-          }
-        }
-      ],
-      "tags": [
-        "invoice",
-        "company"
-      ],
-      "updated_at": {
-        "$date": 1511772371136
-      },
-      "viewers": []
-    },
-    {
-      "_id": {
-        "$oid": "5a1b6f175363a3324cc8027d"
-      },
-      "created_at": {
-        "$date": 1511772551920
-      },
-      "editors": [],
-      "name": "parser2",
-      "owners": [
-        {
-          "id": {
-            "$oid": "5a1b694e5363a32e84e153fe"
-          },
-          "username": "ntsd"
-        }
-      ],
-      "parserRules": [
-        {
-          "data": "10,50,10,50",
-          "name": "rule1",
-          "ruleType": {
-            "name": "boundary"
-          }
-        }
-      ],
-      "tags": [
-        "invoice",
-        "company"
-      ],
-      "updated_at": {
-        "$date": 1511772551921
-      },
-      "viewers": []
-    },
-    {
-      "_id": {
-        "$oid": "5a1b6f3d5363a3324cc8027e"
-      },
-      "created_at": {
-        "$date": 1511772589453
-      },
-      "editors": [],
-      "name": "parser3",
-      "owners": [
-        {
-          "id": {
-            "$oid": "5a1b694e5363a32e84e153fe"
-          },
-          "username": "ntsd"
-        }
-      ],
-      "parserRules": [
-        {
-          "data": "10,50,10,50",
-          "name": "rule1",
-          "ruleType": {
-            "name": "boundary"
-          }
-        }
-      ],
-      "tags": [
-        "recipt"
-      ],
-      "updated_at": {
-        "$date": 1511772589454
-      },
-      "viewers": []
-    }
-  ];
+  import { mapState, mapActions } from 'vuex'
+  const parserList = [];
 
   export default {
+    computed: {
+      ...mapState({
+        parserList: ({parserList}) => parserList.items
+      })
+    },
+    beforeCreate() {
+    },
+    created(){
+      this.getParserList({})
+    },
     data () {
       return {
-        items: items,
+//        items: parserList,
         fields: {
           name: { label: 'parser name', sortable: true },
           owners: { label: 'owners', sortable: true, 'class': 'text-center' },
@@ -200,7 +107,7 @@
         },
         currentPage: 1,
         perPage: 5,
-        totalRows: items.length,
+//        totalRows: parserList.length,
         pageOptions: [{text: 5, value: 5}, {text: 10, value: 10}, {text: 15, value: 15}],
         sortBy: null,
         sortDesc: false,
@@ -209,6 +116,9 @@
       }
     },
     methods: {
+      ...mapActions([
+        'getParserList'
+      ]),
       details (item, index, button) {
         this.modalDetails.data = JSON.stringify(item, null, 2)
         this.modalDetails.index = index

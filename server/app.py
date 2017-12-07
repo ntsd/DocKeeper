@@ -1,16 +1,17 @@
 import os
 
 from flask import Flask, request, jsonify
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, abort
 from flask_mongoengine import MongoEngine
 from mongoengine.queryset.visitor import Q
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
-    get_jwt_identity
+    get_jwt_identity, create_refresh_token,
+    jwt_refresh_token_required, get_raw_jwt
 )
-
-from webargs import fields, validate
-from webargs.flaskparser import use_kwargs, parser
+# from webargs import fields, validate
+# from webargs.flaskparser import use_kwargs, parser
+from werkzeug.utils import secure_filename
 
 import decimal
 import datetime
@@ -23,10 +24,21 @@ import json
 
 from server import models
 
+from flask_cors import CORS
+
 app = Flask(__name__)
+
+CORS(app)
+
 bcrypt = Bcrypt(app)
 
 # app.url_map.strict_slashes = False
+
+DOCUMENTS_FOLDER = '/documents/'
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 app.config.update(
     DEBUG=True,
@@ -37,17 +49,16 @@ app.config.update(
         'DB': 'dockeeper-test',
         'TZ_AWARE': False,
     },
+    DOCUMENTS_FOLDER=DOCUMENTS_FOLDER
 )
 
 # Setup the Flask-JWT-Extended extension
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
 jwt = JWTManager(app)
 
-
 api = Api(app)  # , prefix="/api/v1")
 
 db = MongoEngine(app)
-
 
 class MongoEncoder(json.JSONEncoder):
     def default(self, value, **kwargs):
@@ -64,7 +75,7 @@ class MongoEncoder(json.JSONEncoder):
         return super(MongoEncoder, self).default(value, **kwargs)
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/users/login', methods=['POST'])
 def login():
     if not request.is_json:
         return jsonify({"msg": "Missing JSON in request"}), 400
@@ -81,16 +92,33 @@ def login():
 
     user = models.User.objects(username=username)[0]
     if bcrypt.check_password_hash(user.password, password):
-        access_token = create_access_token(identity=user.username+" "+str(user.id))
+        expires = datetime.timedelta(days=7)
+        access_token = create_access_token(identity=user.username+" "+str(user.id), expires_delta=expires)
         return jsonify(access_token=access_token), 200
 
 
-@app.route('/register', methods=['POST'])
+# @app.route('/logout', methods=['DELETE'])
+# @jwt_required
+# def logout():
+#     jti = get_raw_jwt()['jti']
+#     blacklist.add(jti)
+#     return jsonify({"msg": "Successfully logged out"}), 200
+
+
+@app.route('/users/register', methods=['POST'])
 def register():
     user_json = request.get_json(silent=True)
     user = models.User.from_json(str(user_json).replace("'", "\""))
     user.password = str(bcrypt.generate_password_hash(user.password))[2:-1]
     user.save()
+    return jsonify(user), 200
+
+@app.route('/users/me', methods=['GET'])
+@jwt_required
+def me():
+    current_user = get_jwt_identity()
+    current_user_username, current_user_id = current_user.split()
+    user = models.User.objects(id=current_user_id).get()
     return jsonify(user), 200
 
 
@@ -101,27 +129,22 @@ class PrivateResource(Resource):
         return current_user, 200
 
 
-class DocumentResource(Resource):
-    args = {
-        'parserId': fields.Str(
-            required=True
-        ),
-    }
-
-    @use_kwargs(args)
+class DocumentsListResource(Resource):
     @jwt_required
     def get(self, parserId):
         current_user = get_jwt_identity()
         user = models.UserRef(username=current_user.split()[0], id=current_user.split()[1])
         # check parser authen owner editor or viewer
-        parser = models.Parser.objects(id=parserId)[0]
+        parser = models.Parser.objects(id=parserId).get()
         if user not in parser.owners + parser.editors + parser.viewers:
-            return "can't view", 401
+            abort(401, description="you don't have permission.")
         parserRef = models.ParserRef(id=parserId, name=parser.name)
         documents = models.Document.objects(parserRef=parserRef)
         # print(documents.to_json())
         return jsonify(results=documents)
 
+
+class DocumentAddResource(Resource):
     @jwt_required
     def post(self):
         current_user = get_jwt_identity()
@@ -129,22 +152,80 @@ class DocumentResource(Resource):
         document_json = request.get_json(force=True)
         document = models.Document.from_json(str(document_json).replace("'", "\""))
         document.uploadBy = user
+        # check upload file
+        if 'file' in request.files:
+            file = request.files['file']
+            filename = secure_filename(file.filename)
+            filePath = os.path.join(app.config['DOCUMENTS_FOLDER'], document.id+"/"+filename)
+            file.save(filePath)
+            document.path = filePath
         document.save()
         return jsonify(document)
 
 
-class ParserResource(Resource):
+class DocumentResource(Resource):
+    @jwt_required
+    def get(self, documentId):
+        document = models.Document.objects(id=documentId).get()
+        return jsonify(document)
+
+    @jwt_required
+    def put(self, documentId):
+        document = models.Document.objects(id=documentId).get()
+        document_json = request.get_json(force=True)
+        for (key, val) in document_json.items():
+            # print(key, val)
+            if key == "parserRef":
+                document[key] = models.ParserRef.from_json(str(val).replace("'", "\""))
+            elif key in ["uploadBy"]:
+                document[key] = models.UserRef.from_json(str(val).replace("'", "\""))
+            elif key in ["updated_at", "created_at", "_id"]:
+                pass
+            else:
+                document[key] = val
+        document.save()
+        return jsonify(document)
+
+    @jwt_required
+    def delete(self, documentId):
+        document = models.Document.objects(id=documentId)
+        document.delete()
+        return jsonify('deleted')
+
+
+class ParsersListResource(Resource):
     @jwt_required
     def get(self):
         current_user = get_jwt_identity()
         current_user_username = current_user.split()[0]
         current_user_id = current_user.split()[1]
         parsers = models.Parser.objects(Q(owners=models.UserRef(username=current_user_username, id=current_user_id))\
-                                        | Q(editors=models.UserRef(username=current_user_username, id=current_user_id)))
+                                        | Q(editors=models.UserRef(username=current_user_username, id=current_user_id))\
+                                        | Q(viewers=models.UserRef(username=current_user_username, id=current_user_id)))
         # print(current_user, ObjectId(current_user), parsers.to_json())
         # return json.dumps(parsers.to_json(), allow_nan=False, cls=MongoEncoder), 200
         return jsonify(results=parsers)
 
+
+class DocumentsListByParsersListResource(Resource):
+    @jwt_required
+    def get(self):
+        current_user = get_jwt_identity()
+        current_user_username = current_user.split()[0]
+        current_user_id = current_user.split()[1]
+        parsers = models.Parser.objects(Q(owners=models.UserRef(username=current_user_username, id=current_user_id)) \
+                                        | Q(editors=models.UserRef(username=current_user_username, id=current_user_id)) \
+                                        | Q(viewers=models.UserRef(username=current_user_username, id=current_user_id)))
+        documents = []
+        for parser in parsers:
+            parserRef = models.ParserRef(id=parser.id, name=parser.name)
+            docs = models.Document.objects(parserRef=parserRef)
+            if docs:
+                documents+=docs
+        return jsonify(results=documents)
+
+
+class ParserAddResource(Resource):
     @jwt_required
     def post(self):
         current_user = get_jwt_identity()
@@ -159,9 +240,99 @@ class ParserResource(Resource):
         return jsonify(parser)
 
 
+class ParserResource(Resource):
+    @jwt_required
+    def get(self, parserId):
+        current_user = get_jwt_identity()
+        current_user_username, current_user_id = current_user.split()
+        parser = models.Parser.objects(id=parserId).get()
+        if models.UserRef(username=current_user_username, id=current_user_id) in \
+                                parser.owners+parser.editors+parser.viewers:
+            return jsonify(parser)
+        else:
+            abort(401, description="you don't have permission.")
+
+    @jwt_required
+    def put(self, parserId):
+        current_user = get_jwt_identity()
+        current_user_username, current_user_id = current_user.split()
+        parser_json = request.get_json(force=True)
+        parser = models.Parser.objects(id=parserId).get()
+        for (key, val) in parser_json.items():
+            # print(key, val)
+            if key in ["owners", "editors", "viewers"]:
+                parser[key] = [models.UserRef.from_json(str(user).replace("'", "\"")) for user in val]
+            elif key in ["parserRules"]:
+                parser[key] = [models.ParserRule.from_json(str(parserRule).replace("'", "\"")) for parserRule in val]
+            elif key in ["updated_at", "created_at", "_id"]:
+                pass
+            else:
+                parser[key] = val
+        parser.save()
+        return jsonify(parser)
+
+    @jwt_required
+    def delete(self, parserId):
+        parser = models.Parser.objects(id=parserId)
+        parser.delete()
+        return jsonify('deleted')
+
+class ParserRulesResource(Resource):
+    @jwt_required
+    def get(self, parserId):
+        current_user = get_jwt_identity()
+        current_user_username, current_user_id = current_user.split()  # need to check owner
+        parser = models.Parser.objects(id=parserId).get()
+        return jsonify(results=parser.parserRules)
+
+    @jwt_required
+    def post(self, parserId):
+        current_user = get_jwt_identity()
+        current_user_username, current_user_id = current_user.split()  # need to check owner
+        parser = models.Parser.objects(id=parserId).get()
+        parserRule_json = request.get_json(force=True)
+        parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
+        if parserRule.name in [i.name for i in parser.parserRules]:
+            abort(409, description="parserule already exists.")
+        parser.parserRules += [parserRule]
+        parser.save()
+        return jsonify(parser)
+
+    @jwt_required
+    def put(self, parserId):
+        current_user = get_jwt_identity()
+        current_user_username, current_user_id = current_user.split()  # need to check owner
+        parserRule_json = request.get_json(force=True)
+        parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
+        parser = models.Parser.objects(Q(id=parserId) and Q(parserRules__oid=parserRule.oid))
+        updated = parser.update_one(set__parserRules__S=parserRule)
+        if updated:
+            return jsonify(parser)
+        else:
+            models.Parser.objects.update_one(push__parserRules=parserRule)
+            return jsonify(parser)
+
+    @jwt_required
+    def delete(self, parserId):
+        current_user = get_jwt_identity()
+        current_user_username, current_user_id = current_user.split()  # need to check owner
+        parserRule_json = request.get_json(force=True)
+        parser = models.Parser.objects(Q(id=parserId))
+        updated = parser.update_one(pull__parserRules__oid=parserRule_json['oid']['$oid'])
+        if updated:
+            return jsonify(parser)
+        else:
+            return abort(410, description="parserule do not  exists.")
+
 api.add_resource(PrivateResource, '/private')
-api.add_resource(DocumentResource, '/documents')
-api.add_resource(ParserResource, '/parsers')
+api.add_resource(DocumentAddResource, '/documents/add')
+api.add_resource(DocumentsListResource, '/documents/list/<string:parserId>')
+api.add_resource(DocumentResource, '/documents/<string:documentId>')
+api.add_resource(ParserAddResource, '/parsers/add')
+api.add_resource(ParsersListResource, '/parsers/list')
+api.add_resource(DocumentsListByParsersListResource, '/documents/list')
+api.add_resource(ParserResource, '/parsers/<string:parserId>')
+api.add_resource(ParserRulesResource, '/parserrules/<string:parserId>')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))

@@ -23,16 +23,17 @@
 
           <div class="row my-1">
             <div class="col-sm-8">
-              <b-pagination :total-rows="totalRows" :per-page="perPage" v-model="currentPage" />
+              <b-pagination :total-rows=documentList.length :per-page="perPage" v-model="currentPage" />
             </div>
             <div class="col-sm-4 text-md-right">
+              <router-link to="uploadDocument"><b-button >Upload Document</b-button></router-link>
               <b-button :disabled="!sortBy" @click="sortBy = null">Clear Sort</b-button>
             </div>
           </div>
 
           <!-- Main table element -->
           <b-table striped hover show-empty
-                   :items="items"
+                   :items=documentList
                    :fields="fields"
                    :current-page="currentPage"
                    :per-page="perPage"
@@ -40,9 +41,12 @@
                    :sort-by.sync="sortBy"
                    :sort-desc.sync="sortDesc"
                    @filtered="onFiltered"
+                   ref="table"
           >
-            <template slot="name" scope="row">{{row.value.first}} {{row.value.last}}</template>
-            <template slot="isActive" scope="row">{{row.value?'Yes :)':'No :('}}</template>
+            <template slot="name" scope="row">{{row.value}}</template>
+            <template slot="parserRef" scope="row">{{row.value.name}}</template>
+            <template slot="uploadBy" scope="row">{{row.value.username}}</template>
+            <template slot="updated_at" scope="row">{{moment(row.value.$date).format('YYYY-MM-DD')}}</template>
             <template slot="actions" scope="row">
               <!-- We use click.stop here to prevent a 'row-clicked' event from also happening -->
               <b-btn size="sm" @click.stop="details(row.item,row.index,$event.target)">Details</b-btn>
@@ -65,42 +69,34 @@
 </template>
 
 <script>
-  const items = [
-    { isActive: true, age: 40, name: { first: 'Dickerson', last: 'Macdonald' } },
-    { isActive: false, age: 21, name: { first: 'Larsen', last: 'Shaw' } },
-    { _rowVariant: 'success',
-      isActive: false,
-      age: 9,
-      name: { first: 'Mini', last: 'Navarro' }
-    },
-    { isActive: false, age: 89, name: { first: 'Geneva', last: 'Wilson' } },
-    { isActive: true, age: 38, name: { first: 'Jami', last: 'Carney' } },
-    { isActive: false, age: 27, name: { first: 'Essie', last: 'Dunlap' } },
-    { isActive: true, age: 40, name: { first: 'Thor', last: 'Macdonald' } },
-    { _cellVariants: { age: 'danger', isActive: 'warning' },
-      isActive: true,
-      age: 87,
-      name: { first: 'Larsen', last: 'Shaw' }
-    },
-    { isActive: false, age: 26, name: { first: 'Mitzi', last: 'Navarro' } },
-    { isActive: false, age: 22, name: { first: 'Genevieve', last: 'Wilson' } },
-    { isActive: true, age: 38, name: { first: 'John', last: 'Carney' } },
-    { isActive: false, age: 29, name: { first: 'Dick', last: 'Dunlap' } }
-  ]
+  const documentList = [ ]
+
+  import { mapState, mapActions } from 'vuex'
 
   export default {
+    computed: {
+      ...mapState({
+        documentList: ({documentList}) => documentList.items
+      })
+    },
+    beforeCreate() {
+    },
+    created(){
+      this.getDocumentList({})
+    },
     data () {
       return {
-        items: items,
+//        items: items,
         fields: {
-          name: { label: 'Person Full name', sortable: true },
-          age: { label: 'Person age', sortable: true, 'class': 'text-center' },
-          isActive: { label: 'is Active' },
+          name: { label: 'File Name', sortable: true },
+          parserRef: { label: 'Parser', sortable: true},
+          uploadBy: { label: 'upload by', sortable: true, 'class': 'text-center' },
+          updated_at: { label: 'last update',sortable: true },
           actions: { label: 'Actions' }
         },
         currentPage: 1,
         perPage: 5,
-        totalRows: items.length,
+//        totalRows: items.length,
         pageOptions: [{text: 5, value: 5}, {text: 10, value: 10}, {text: 15, value: 15}],
         sortBy: null,
         sortDesc: false,
@@ -109,6 +105,9 @@
       }
     },
     methods: {
+      ...mapActions([
+        'getDocumentList'
+      ]),
       details (item, index, button) {
         this.modalDetails.data = JSON.stringify(item, null, 2)
         this.modalDetails.index = index

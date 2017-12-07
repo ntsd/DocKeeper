@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask_mongoengine import MongoEngine
+from bson.objectid import ObjectId
 
 db = MongoEngine()
 
@@ -29,19 +30,17 @@ class UserRef(db.EmbeddedDocument):
     id = db.ReferenceField(User)
 
 
-class ParserRuleType(db.EmbeddedDocument):
-    name = db.StringField()
-    description = db.StringField()
-
-
 class ParserRule(db.EmbeddedDocument):
-    name = db.StringField()
-    ruleType = db.EmbeddedDocumentField(ParserRuleType, required=True)
+    oid = db.ObjectIdField(required=True, default=lambda: ObjectId())
+    name = db.StringField(required=True)
+    ruleType = db.StringField()
     data = db.StringField()
+    description = db.StringField()
 
 
 class Parser(db.Document):
     name = db.StringField(required=True)
+    description = db.StringField()
     owners = db.ListField(db.EmbeddedDocumentField(UserRef))
     editors = db.ListField(db.EmbeddedDocumentField(UserRef))
     viewers = db.ListField(db.EmbeddedDocumentField(UserRef))

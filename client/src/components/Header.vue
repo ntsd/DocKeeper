@@ -12,36 +12,59 @@
       </b-nav-item>
       <b-nav-item-dropdown right>
         <template slot="button-content">
-          <img src="static/img/avatars/7.jpg" class="img-avatar" alt="admin@bootstrapmaster.com">
-          <span class="d-md-down-none">admin</span>
+          <img :src="defaultAvatar" class="img-avatar" alt="">
+          <span class="d-md-down-none">{{auth.user.username}}</span>
         </template>
         <b-dropdown-header tag="div" class="text-center"><strong>Account</strong></b-dropdown-header>
-        <b-dropdown-item><i class="fa fa-lock"></i> Logout</b-dropdown-item>
+        <a href="javascript:;" class="shrink-logout" @click="logout()">
+          <b-dropdown-item >
+            <i class="fa fa-lock" ></i> Logout
+          </b-dropdown-item>
+        </a>
       </b-nav-item-dropdown>
     </b-nav>
     <button class="navbar-toggler aside-menu-toggler d-md-down-none" type="button" @click="asideToggle">&#9776;</button>
   </header>
 </template>
 <script>
-export default {
-  name: 'header',
-  methods: {
-    sidebarToggle (e) {
-      e.preventDefault()
-      document.body.classList.toggle('sidebar-hidden')
+  import defaultAvatar from '../assets/images/avatar.png'
+  import { mapState,mapActions } from 'vuex'
+  export default {
+    computed: {
+      ...mapState({
+        auth: state => state.auth,
+      }),
+      defaultAvatar() {
+        return defaultAvatar
+      }
     },
-    sidebarMinimize (e) {
-      e.preventDefault()
-      document.body.classList.toggle('sidebar-minimized')
+    created (){
+      if(this.auth.token){
+        this.getUserInfo()
+      }
     },
-    mobileSidebarToggle (e) {
-      e.preventDefault()
-      document.body.classList.toggle('sidebar-mobile-show')
-    },
-    asideToggle (e) {
-      e.preventDefault()
-      document.body.classList.toggle('aside-menu-hidden')
+    methods: {
+      ...mapActions([
+        'changeStyleMode',
+        'logout',
+        'getUserInfo'
+      ]),
+      sidebarToggle (e) {
+        e.preventDefault()
+        document.body.classList.toggle('sidebar-hidden')
+      },
+      sidebarMinimize (e) {
+        e.preventDefault()
+        document.body.classList.toggle('sidebar-minimized')
+      },
+      mobileSidebarToggle (e) {
+        e.preventDefault()
+        document.body.classList.toggle('sidebar-mobile-show')
+      },
+      asideToggle (e) {
+        e.preventDefault()
+        document.body.classList.toggle('aside-menu-hidden')
+      }
     }
   }
-}
 </script>
