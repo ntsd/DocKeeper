@@ -67,7 +67,6 @@
     name: 'newparser',
     methods: {
       ...mapActions([
-        'getParserList',
         'addParser'
       ]),
       onSubmit (evt) {

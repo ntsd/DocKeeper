@@ -43,7 +43,13 @@
                    @filtered="onFiltered"
                    ref="table"
           >
-            <template slot="name" scope="row">{{row.value}}</template>
+
+              <template slot="name" scope="row">
+                <router-link :to="{name: 'Parser', params: {parserId: row.item._id.$oid}}">
+                  {{row.value}}
+                </router-link>
+              </template>
+
             <template slot="owners" scope="row">
               <div v-for="user in row.value">
                 {{user.username}}
@@ -58,9 +64,7 @@
               {{moment(row.value.$date).format('YYYY-MM-DD')}}
             </template>
             <template slot="actions" scope="row">
-              <b-btn size="sm">Edit</b-btn>
-              <!-- We use click.stop here to prevent a 'row-clicked' event from also happening -->
-              <!--<b-btn size="sm" @click.stop="details(row.item,row.index,$event.target)">Details</b-btn>-->
+              <b-btn v-b-modal.editModal @click.stop="editButton(row.item)">Edit</b-btn>
             </template>
           </b-table>
 
@@ -69,9 +73,33 @@
           </p>
 
           <!-- Details modal -->
-          <b-modal id="modal1" @hide="resetModal" ok-only>
-            <h4 class="my-1 py-1" slot="modal-header">Index: {{ modalDetails.index }}</h4>
-            <pre>{{ modalDetails.data }}</pre>
+          <b-modal id="editModal"
+                   centered
+                   ref="modal"
+                   title="Edit Document"
+                   @ok="handleOk"
+          >
+            <form @submit.stop.prevent="handleSubmit">
+              <b-form-group id="" label="Parser Name:">
+                <b-form-input id="nameInput"
+                              type="text"
+                              v-model="modalEdit.name"
+                              required
+                              placeholder="Enter Parser name">
+                </b-form-input>
+              </b-form-group>
+              <b-form-group id="" label="Description:">
+                <b-form-input id="descriptionInput"
+                              type="text"
+                              v-model="modalEdit.description"
+                              required
+                              placeholder="Enter Description">
+                </b-form-input>
+              </b-form-group>
+              <b-form-group id="" label="Tags:">
+                <input-tag placeholder="Add Tags" :tags="modalEdit.tags"></input-tag>
+              </b-form-group>
+            </form>
           </b-modal>
         </b-card>
       </div><!--/.col-->
@@ -81,6 +109,7 @@
 
 <script>
   /*eslint-disable */
+  import InputTag from 'vue-input-tag'
   import { mapState, mapActions } from 'vuex'
   const parserList = [];
 
@@ -112,28 +141,38 @@
         sortBy: null,
         sortDesc: false,
         filter: null,
-        modalDetails: { index: '', data: '' }
+        modalEdit: {
+          name: '',
+          owners: null,
+          tags:[],
+          description:''
+        }
       }
     },
     methods: {
       ...mapActions([
         'getParserList'
       ]),
-      details (item, index, button) {
-        this.modalDetails.data = JSON.stringify(item, null, 2)
-        this.modalDetails.index = index
-        this.$root.$emit('bv::show::modal', 'modal1', button)
+      handleOk (evt) {
+        evt.preventDefault()
+        this.handleSubmit()
       },
-      resetModal () {
-        this.modalDetails.data = ''
-        this.modalDetails.index = ''
+      handleSubmit () {
+        this.$refs.modal.hide()
+      },
+      editButton(item){
+        this.modalEdit = item
       },
       onFiltered (filteredItems) {
         // Trigger pagination to update the number of buttons/pages due to filtering
         this.totalRows = filteredItems.length
         this.currentPage = 1
       }
+    },
+    components:{
+      InputTag
     }
   }
+
   /*eslint-enable */
 </script>

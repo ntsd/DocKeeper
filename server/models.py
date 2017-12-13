@@ -62,13 +62,18 @@ class ParserRef(db.EmbeddedDocument):
     id = db.ReferenceField(Parser)
 
 
-class Document(db.Document):
+class ExtractedData(db.DynamicEmbeddedDocument):
+    pass
+
+
+class Document(db.DynamicDocument):
     name = db.StringField()
     path = db.StringField()
     uploadBy = db.EmbeddedDocumentField(UserRef)
     parserRef = db.EmbeddedDocumentField(ParserRef)
     updated_at = db.DateTimeField(default=datetime.now)
     created_at = db.DateTimeField(default=datetime.now)
+    # extracted = db.EmbeddedDocumentField(ExtractedData)
 
     def save(self, *args, **kwargs):
         if not self.created_at:

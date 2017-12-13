@@ -1,6 +1,41 @@
 <template>
   <div class="animated fadeIn">
     <div class="row">
+      <div class="col-6">
+        <b-card header="<i class='fa fa-align-justify'></i> Parser Details">
+          Name : {{parser.name}} <br>
+          Description : {{parser.description}} <br>
+          Owner: {{parser.owners[0].username}} <br>
+          Tags: {{parser.tags}} <br>
+          CreateAt: {{moment(parser.created_at.$date).format('YYYY-MM-DD')}}
+        </b-card>
+      </div>
+      <div class="col-6">
+        <b-card header="<i class='fa fa-align-justify'></i> Parser Rules">
+          <b-table striped hover show-empty
+                   :items=parser.parserRules
+                   :fields="parserRuleFields"
+                   :current-page="currentPage"
+                   :per-page="perPage"
+                   :filter="filter"
+                   :sort-by.sync="sortBy"
+                   :sort-desc.sync="sortDesc"
+                   @filtered="onFiltered"
+                   ref="table"
+          >
+            <template slot="name" scope="row">
+              {{row.value}}
+            </template>
+            <template slot="ruleType" scope="row">{{row.value}}</template>
+            <template slot="actions" scope="row">
+              <router-link :to="{name: 'Parser Rule', params: {parserId: parserId, parserRuleId: row.item.oid.$oid
+                    }}">
+                <b-btn >Edit</b-btn>
+              </router-link>
+            </template>
+          </b-table>
+        </b-card>
+      </div>
       <div class="col-12">
         <b-card header="<i class='fa fa-align-justify'></i> Documents Table">
           <div class="my-1 row">
@@ -26,7 +61,7 @@
               <b-pagination :total-rows=documentList.length :per-page="perPage" v-model="currentPage" />
             </div>
             <div class="col-sm-4 text-md-right">
-              <router-link to="uploadDocument/new"><b-button >Upload Document</b-button></router-link>
+              <router-link :to="{name: 'Upload Document', params: {parserId: this.parserId}}"><b-button >Upload Document</b-button></router-link>
               <b-button :disabled="!sortBy" @click="sortBy = null">Clear Sort</b-button>
             </div>
           </div>
@@ -52,8 +87,6 @@
             <template slot="uploadBy" scope="row">{{row.value.username}}</template>
             <template slot="updated_at" scope="row">{{moment(row.value.$date).format('YYYY-MM-DD')}}</template>
             <template slot="actions" scope="row">
-              <!-- We use click.stop here to prevent a 'row-clicked' event from also happening -->
-              <!--<b-btn size="sm" @click.stop="details(row.item,row.index,$event.target)">Details</b-btn>-->
               <b-btn v-b-modal.editModal @click.stop="editButton(row.item,$event.target)">Edit</b-btn>
             </template>
           </b-table>
@@ -62,12 +95,6 @@
             Sort By: {{ sortBy || 'n/a' }}, Direction: {{ sortDesc ? 'descending' : 'ascending' }}
           </p>
 
-          <!-- Details modal -->
-          <!--<b-modal id="modal1" @hide="resetModal" ok-only>-->
-            <!--<h4 class="my-1 py-1" slot="modal-header">Index: {{ modalDetails.index }}</h4>-->
-            <!--<pre>{{ modalDetails.data }}</pre>-->
-          <!--</b-modal>-->
-          <!-- Edit modal -->
           <b-modal id="editModal"
                    centered
                    ref="modal"
@@ -109,14 +136,15 @@
     computed: {
       ...mapState({
         documentList: ({documentList}) => documentList.items,
-        parserList: ({parserList}) => parserList.items
+        parserList: ({parserList}) => parserList.items,
+        parserId: ({route}) => route.params.parserId,
+        parser: ({parser}) => parser.parser,
       })
     },
     beforeCreate() {
     },
     created(){
-      this.getParserList({})
-      this.getDocumentList({})
+      this.initData()
     },
     data () {
       return {
@@ -141,17 +169,28 @@
           uploadBy:'',
           updated_at:'',
           image_url:''
+        },
+        parserRuleFields: {
+          name: {label:'Rules'},
+          ruleType: {label: 'Type'},
+          actions: {label:'Actions'}
         }
       }
     },
     methods: {
       ...mapActions([
         'getParserList',
-        'getDocumentList'
+        'getDocumentListByParser',
+        'getParser'
       ]),
+      initData(){
+//        console.log(this.parserId)
+        this.getDocumentListByParser(this.parserId)
+        this.getParser(this.parserId)
+        this.getParserList()
+      },
       handleOk (evt) {
 //        evt.preventDefault()
-        this.handleSubmit()
       },
       handleSubmit () {
 //        this.names.push()this.name
@@ -162,7 +201,6 @@
 //        this.$root.$emit('bv::show::editModal', 'editModal', button)
       },
       onFiltered (filteredItems) {
-        // Trigger pagination to update the number of buttons/pages due to filtering
         this.totalRows = filteredItems.length
         this.currentPage = 1
       }
@@ -170,5 +208,6 @@
     components: {
       vSelect
     },
+    name:"Parser",
   }
 </script>

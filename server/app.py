@@ -20,6 +20,10 @@ from bson.objectid import ObjectId
 
 from flask_bcrypt import Bcrypt
 
+# for ocr
+from server.utils import ImageOCR
+# from PIL import Image, ImageEnhance, ImageFilter
+
 import json
 
 from server import models
@@ -34,7 +38,7 @@ bcrypt = Bcrypt(app)
 
 # app.url_map.strict_slashes = False
 
-DOCUMENTS_FOLDER = '/documents/'
+DOCUMENTS_FOLDER = 'static/documents/'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 def allowed_file(filename):
     return '.' in filename and \
@@ -150,17 +154,44 @@ class DocumentAddResource(Resource):
         current_user = get_jwt_identity()
         user = models.UserRef(username=current_user.split()[0], id=current_user.split()[1])
         document_json = request.get_json(force=True)
+        # print(document_json)
         document = models.Document.from_json(str(document_json).replace("'", "\""))
         document.uploadBy = user
-        # check upload file
-        if 'file' in request.files:
-            file = request.files['file']
-            filename = secure_filename(file.filename)
-            filePath = os.path.join(app.config['DOCUMENTS_FOLDER'], document.id+"/"+filename)
-            file.save(filePath)
-            document.path = filePath
         document.save()
         return jsonify(document)
+
+
+class DocumentExtractResource(Resource):
+    @jwt_required
+    def get(self, documentId):
+        document = models.Document.objects(id=documentId).get()
+        # ocr
+        im = ImageOCR.Image.open(document.path)
+        im_out = ImageOCR.preprocess(im)
+        text = ImageOCR.pytesseract.image_to_string(im_out, lang='eng+tha')
+        # models.Document.objects(id=documentId).update_one(textOCR=text)
+        extractedData = models.ExtractedData()
+        extractedData.full_text = text
+        document.extracted = extractedData
+        document.save()
+        return jsonify(extractedData)
+
+
+class DocumentUploadResource(Resource):
+    @jwt_required
+    def post(self, documentId):
+        # print(request.form, request.files)
+        file = request.files['document-file']
+        parserId = request.form['parserId']
+        fileName = secure_filename(file.filename)
+        filePath = os.path.join(app.config['DOCUMENTS_FOLDER'], parserId+'/'+documentId)
+        if not os.path.exists(filePath):
+                os.makedirs(filePath)
+        fileFullPath = os.path.join(filePath, fileName)  # os.path.join(filePath, filename)
+        file.save(fileFullPath)
+        models.Document.objects(id=documentId).update_one(path=fileFullPath)
+
+        return jsonify(fileFullPath)
 
 
 class DocumentResource(Resource):
@@ -277,6 +308,7 @@ class ParserResource(Resource):
         parser.delete()
         return jsonify('deleted')
 
+
 class ParserRulesResource(Resource):
     @jwt_required
     def get(self, parserId):
@@ -326,6 +358,8 @@ class ParserRulesResource(Resource):
 
 api.add_resource(PrivateResource, '/private')
 api.add_resource(DocumentAddResource, '/documents/add')
+api.add_resource(DocumentExtractResource, '/documents/extract/<string:documentId>')
+api.add_resource(DocumentUploadResource, '/documents/upload/<string:documentId>')
 api.add_resource(DocumentsListResource, '/documents/list/<string:parserId>')
 api.add_resource(DocumentResource, '/documents/<string:documentId>')
 api.add_resource(ParserAddResource, '/parsers/add')

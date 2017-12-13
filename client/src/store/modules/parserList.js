@@ -1,6 +1,6 @@
 import api from '../../api'
 import {
-  PARSER_LIST,
+  GET_PARSER_LIST,
   ADD_PARSER_LIST,
   REQUEST_PARSER_LIST,
   GET_PARSER_LIST_FAILURE,
@@ -15,25 +15,19 @@ const state = {
 }
 
 const actions = {
-  getParserList({ commit }, {isAdd=false}){
+  getParserList({ commit }){
 
     commit(REQUEST_PARSER_LIST)
     api.getParsers().then(response => {
-      // console.log('test')
       if(!response.ok){
         return commit(GET_PARSER_LIST_FAILURE)
       }
       const json = response.data
       const isMore = 0 // !(json.data.length < options.itemsPerPage)
-      isAdd
-        ? commit(ADD_PARSER_LIST,{
-          parserList: json.results,
-          isMore:isMore
-        })
-        : commit(PARSER_LIST,{
-          parserList: json.results,
-          isMore:isMore
-        })
+      commit(GET_PARSER_LIST,{
+        parserList: json.results,
+        isMore:isMore
+      })
     }, response => {
       commit(GET_PARSER_LIST_FAILURE)
     })
@@ -57,7 +51,7 @@ const mutations = {
   [REQUEST_PARSER_LIST](state){
     state.isFetching = true
   },
-  [PARSER_LIST](state,action){
+  [GET_PARSER_LIST](state,action){
     state.isFetching = false
     state.isMore = action.isMore
     state.items = action.parserList

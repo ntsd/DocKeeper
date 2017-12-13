@@ -2,7 +2,7 @@
 // import parser from './parser'
 // import parserRule from './parserRule'
 // import document from './document'
-import {UserResource, ParserResource, ParserRuleResource, DocumentResource} from './resources'
+import {UserResource, ParserResource, ParserRuleResource, DocumentResource, http} from './resources'
 
 export default {
   // User
@@ -50,31 +50,41 @@ export default {
     return ParserRuleResource.update({id:parserId}, parserRule)
   },
   // Document
-  getDocument : (id) => {
-    return DocumentResource.get({id:id})
+  getDocument : (documentId) => {
+    return DocumentResource.get({id:documentId})
   },
 
-  putDocument : (id, document) => {
-    return DocumentResource.update({id:id},document)
+  putDocument : (documentId, document) => {
+    return DocumentResource.update({id:documentId},document)
   },
 
-  deleteDocument : (id) => {
-    return DocumentResource.delete({id:id})
+  deleteDocument : (documentId) => {
+    return DocumentResource.delete({id:documentId})
   },
 
   addDocument : (document) => {
-    return this.$http.post('/documents/add', document, {
-      emulateJSON: true,
-      headers: {
-        'X-File-Name': 'my_image',
-// 'Content-Type': 'multipart/form-data'
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    }
-      ) // DocumentResource.save({id:'add'}, document)
+    return DocumentResource.save({id:'add'}, document)
   },
 
-  getDocuments : (parserId) => {
+  uploadDocument : (documentId, parserId, documentFile) => {
+    var formData = new FormData();
+    formData.append('document-file', documentFile);
+    formData.append('parserId', parserId);
+    return http.post('http://127.0.0.1:8000/documents/upload/'+documentId, formData, {
+          emulateJSON: true,
+          headers: {
+            // 'X-File-Name': 'my_image',
+            'Content-Type': 'multipart/form-data'
+          }}
+    )
+  },
+
+  extractDocument : (documentId) => {
+    // console.log('extract', documentId)
+    return DocumentResource.get({id:'extract/'+documentId})
+  },
+
+  getDocumentsByParser : (parserId) => {
     return DocumentResource.get({id:'list/'+parserId})
   },
 

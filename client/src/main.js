@@ -17,10 +17,11 @@ sync(store, router)
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
-  router,
   store,
-  template: '<App/>',
+  router,
   components: {
     App
-  }
+  },
+  template: '<App/>',
+  render: h => h(App)
 })

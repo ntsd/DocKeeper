@@ -16,17 +16,17 @@
               </b-form-input>
             </b-form-group>
             <b-form-group id="" label="Parser:">
-              <b-form-select id="parserInput"
-                             :options="parsers"
-                             required
-                             v-model="form.parserRef">
-              </b-form-select>
+              <v-select
+                label="name"
+                :options=this.parserList
+                v-model="form.parserRef"
+              ></v-select>
             </b-form-group>
 
             <b-form-group id="" label="Select File:">
               <!-- Customized labels -->
-              <b-form-file id="file_input2" v-model="form.path" choose-label="Attachment2"></b-form-file>
-               {{form.path && form.path.name}}
+              <b-form-file id="file_input2" v-model="form.file" choose-label="Attachment2"></b-form-file>
+               {{form.file && form.file.name}}
             </b-form-group>
 
             <b-button type="submit" variant="primary">Submit</b-button>
@@ -41,52 +41,61 @@
 <script>
   /*eslint-disable */
   import { mapState, mapActions } from 'vuex'
+  import vSelect from "vue-select"
 
   export default {
     computed: {
       ...mapState({
-        parserList: ({parserList}) => parserList.items
+        parserList: ({parserList}) => parserList.items,
+        parserIdParam: ({route}) => route.params.parserId
       })
     },
     data () {
       return {
         form: {
           name: '',
-          parserRef: {},
-          path: null
+          parserRef: null,
+          file: null
         },
-        show: true,
-        parsers: [
-          { text: 'Select One', value: null },
-          { text: 'Select TWO', value: null },
-          { text: 'Select Three', value: null }
-        ]
+        show: true
       }
+    },
+    mounted(){
+
+    },
+    created(){
+//      this.getParserList()
+      this.$store.dispatch("getParserList").then(response => {
+//        console.log(JSON.parse(JSON.stringify(this.parserList)))
+      }, error => {
+        console.error("Got nothing from server. Prompt user to check internet connection and try again")
+      })
     },
     name: 'uploaddocument',
     methods: {
       ...mapActions([
         'getParserList',
-        'addParser'
+        'addDocument'
       ]),
       onSubmit (evt) {
         evt.preventDefault();
-        this.addParser(this.form)
+//        console.log(this.form);
+        this.addDocument(this.form)
       },
       onReset (evt) {
         evt.preventDefault();
         // Reset our form values
         this.form.name = '';
-        this.form.description = null;
-        this.form.tags = [];
+        this.form.parserRef = null;
+        this.form.file = null;
         // Trick to reset/clear native browser form validation state
         this.show = false;
         this.$nextTick(() => { this.show = true });
       }
     },
     components: {
-
-    }
+      vSelect
+    },
   }
   /*eslint-enable */
 </script>

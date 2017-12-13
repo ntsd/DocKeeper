@@ -7,8 +7,11 @@ import Full from '@/containers/Full'
 // Views
 import Dashboard from '@/views/Dashboard'
 import Parsers from '@/views/parsers/Parsers'
+import Parser from '@/views/parsers/Parser'
+import ParserRule from '@/views/parsers/ParserRule'
 import NewParser from '@/views/parsers/NewParser'
 import Documents from '@/views/documents/Documents'
+import Document from '@/views/documents/Document'
 import UploadDocument from '@/views/documents/UploadDocument'
 
 // Views - Pages
@@ -56,9 +59,24 @@ const router = new Router({
           component: Documents
         },
         {
-          path: 'uploaddocument',
-          name: 'uploaddocument',
+          path: 'uploaddocument/:parserId',
+          name: 'Upload Document',
           component: UploadDocument
+        },
+        {
+          path: 'parser/:parserId',
+          name: Parser.name,
+          component: Parser
+        },
+        {
+          path: 'document/:documentId',
+          name: 'Document',
+          component: Document
+        },
+        {
+          path: 'parser/:parserId/:parserRuleId',
+          name: 'Parser Rule',
+          component: ParserRule
         }
       ]
     },
