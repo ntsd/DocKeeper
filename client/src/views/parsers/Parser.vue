@@ -1,7 +1,7 @@
 <template>
   <div class="animated fadeIn">
     <div class="row">
-      <div class="col-6">
+      <div class="col-4">
         <b-card header="<i class='fa fa-align-justify'></i> Parser Details">
           Name : {{parser.name}} <br>
           Description : {{parser.description}} <br>
@@ -10,8 +10,17 @@
           CreateAt: {{moment(parser.created_at.$date).format('YYYY-MM-DD')}}
         </b-card>
       </div>
-      <div class="col-6">
+      <div class="col-8">
         <b-card header="<i class='fa fa-align-justify'></i> Parser Rules">
+          <div class="row my-1">
+            <div class="col-sm-8">
+              <b-pagination :total-rows=parser.parserRules.length :per-page=5 v-model="parserRuleCurrentPage" />
+            </div>
+            <div class="col-sm-4 text-md-right">
+              <router-link :to="{name: 'Parser Rule', params: {parserId: parserId, parserRuleId: 'new'
+                    }}"><b-button >New Rule</b-button></router-link>
+            </div>
+          </div>
           <b-table striped hover show-empty
                    :items=parser.parserRules
                    :fields="parserRuleFields"
@@ -157,7 +166,7 @@
           actions: { label: 'Actions' }
         },
         currentPage: 1,
-        perPage: 5,
+        perPage: 10,
 //        totalRows: items.length,
         pageOptions: [{text: 5, value: 5}, {text: 10, value: 10}, {text: 15, value: 15}],
         sortBy: null,
@@ -174,7 +183,8 @@
           name: {label:'Rules'},
           ruleType: {label: 'Type'},
           actions: {label:'Actions'}
-        }
+        },
+        parserRuleCurrentPage: 1,
       }
     },
     methods: {

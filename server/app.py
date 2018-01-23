@@ -313,14 +313,14 @@ class ParserRulesResource(Resource):
     @jwt_required
     def get(self, parserId):
         current_user = get_jwt_identity()
-        current_user_username, current_user_id = current_user.split()  # need to check owner
+        current_user_username, current_user_id = current_user.split()  # todo need to check owner
         parser = models.Parser.objects(id=parserId).get()
         return jsonify(results=parser.parserRules)
 
     @jwt_required
     def post(self, parserId):
         current_user = get_jwt_identity()
-        current_user_username, current_user_id = current_user.split()  # need to check owner
+        current_user_username, current_user_id = current_user.split()  # todo need to check owner
         parser = models.Parser.objects(id=parserId).get()
         parserRule_json = request.get_json(force=True)
         parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
@@ -333,7 +333,7 @@ class ParserRulesResource(Resource):
     @jwt_required
     def put(self, parserId):
         current_user = get_jwt_identity()
-        current_user_username, current_user_id = current_user.split()  # need to check owner
+        current_user_username, current_user_id = current_user.split()  # todo need to check owner
         parserRule_json = request.get_json(force=True)
         parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
         parser = models.Parser.objects(Q(id=parserId) and Q(parserRules__oid=parserRule.oid))
@@ -347,7 +347,7 @@ class ParserRulesResource(Resource):
     @jwt_required
     def delete(self, parserId):
         current_user = get_jwt_identity()
-        current_user_username, current_user_id = current_user.split()  # need to check owner
+        current_user_username, current_user_id = current_user.split()  # todo need to check owner
         parserRule_json = request.get_json(force=True)
         parser = models.Parser.objects(Q(id=parserId))
         updated = parser.update_one(pull__parserRules__oid=parserRule_json['oid']['$oid'])

@@ -1,0 +1,122 @@
+<template>
+  <div class="canvasBox" style="
+ width: 100%;height: 100%;">
+    <canvas id="canvas" v-on:mousedown="handleMouseDown" v-on:mouseup="handleMouseUp" v-on:mousemove="handleMouseMove"
+            style="
+         width: 100%;
+         height: 100%;" ></canvas>
+  </div>
+</template>
+
+<script>
+  export default {
+    props: {
+      imagesrc:'',
+      rect:{
+        startX:0,
+        startY:0,
+        w:0,
+        h:0
+      }
+    },
+    data: function () {
+      return {
+        mouse: {
+          current: {
+            x: 0,
+            y: 0
+          },
+          previous: {
+            x: 0,
+            y: 0
+          },
+          down: false
+        },
+        img:null
+      }
+    },
+    computed: {
+//      currentMouse: function () {
+//        var c = document.getElementById("canvas");
+//        var rect = c.getBoundingClientRect();
+//
+//        return {
+//          x: this.mouse.current.x - rect.left,
+//          y: this.mouse.current.y - rect.top
+//        }
+//      }
+    },
+    methods: {
+      draw: function (event) {
+        if (this.mouse.down ) {
+          var c = document.getElementById("canvas");
+          var ctx = c.getContext("2d");
+          ctx.drawImage(this.img,0,0)//, c.width, c.height * this.img.height / this.img.width);  // ctx.clearRect(0,0,800,800);
+          ctx.setLineDash([6]);
+          ctx.strokeRect(this.rect.startX, this.rect.startY, this.rect.w, this.rect.h);
+        }
+
+      },
+      handleMouseDown: function (event) {
+        this.mouse.down = true;
+//        this.mouse.current = {
+//          x: event.pageX,
+//          y: event.pageY
+//        }
+        this.rect.startX = this.mouse.current.x;
+        this.rect.startY = this.mouse.current.y;
+
+
+      },
+      handleMouseUp: function () {
+        this.mouse.down = false;
+      },
+      handleMouseMove: function (event){
+        var c = document.getElementById("canvas");
+        var rect = c.getBoundingClientRect();
+//        use event.clientX not event.pageX
+        this.mouse.current = {
+          x: event.clientX- rect.left, // todo
+          y: event.clientY- rect.top // todo
+        }
+        if (this.mouse.down) {
+          this.rect.w = this.mouse.current.x - this.rect.startX;
+          this.rect.h = this.mouse.current.y - this.rect.startY ;
+          // ctx.clearRect(0,0,canvas.width,canvas.height);
+          this.draw(event)
+        }
+        // this.draw(event)
+
+      }
+    },
+    beforeMount() {
+
+    },
+    mounted() {
+      var c = document.getElementById("canvas");
+      var ctx = c.getContext("2d");
+      ctx.translate(0.5, 0.5);
+      ctx.imageSmoothingEnabled= false;
+      // var img = document.getElementById("imageRef");
+      var img2 = new Image
+      img2.onload = function(){
+        c.width = img2.width
+        c.height = img2.height
+        ctx.drawImage(img2,0,0)//, c.width, c.height * img2.height / img2.width)
+      }
+      img2.src = this.imagesrc
+      this.img = img2
+
+      // resize after window update
+      // console.log(this.$el)
+      // window.addEventListener("resize", updateCanvas);
+      // function updateCanvas() {
+      //   console.log('resize',c.width, c.height, window.innerWidth, window.innerHeight)
+      //   // c.width = this.$el.offsetWidth;//window.innerWidth; // todo
+      //   // c.height = this.$el.offsetHeight;//window.innerHeight; // todo
+      //   ctx.drawImage(img2,0,0, c.width, c.height * img2.height / img2.width)
+      // }
+      // updateCanvas();
+    }
+  }
+</script>

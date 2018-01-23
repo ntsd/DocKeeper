@@ -3,7 +3,36 @@
     <div class="row">
       <div class="col-12">
         <b-card header="<i class='fa fa-align-justify'></i> Parser Rule">
-
+          <b-form @submit="onSubmit" @reset="onReset" >
+            <b-form-group id="" label="Parser Name:">
+              <b-form-input id="nameInput"
+                            type="text"
+                            v-model="parserRule.name"
+                            required
+                            placeholder="Enter Rule name">
+              </b-form-input>
+            </b-form-group>
+            <b-form-group id="" label="Description:">
+              <b-form-input id="descriptionInput"
+                            type="text"
+                            v-model="parserRule.description"
+                            required
+                            placeholder="Enter Description">
+              </b-form-input>
+            </b-form-group>
+            <b-form-group id="" label="Rule Type:">
+              <select v-model="parserRule.ruleType">
+                <option value="boundary">Boundary</option>
+              </select>
+            </b-form-group>
+            <!--this.documentList = {{this.documentList}}-->
+            <!--<br>-->
+            <!--{{serverUrl+documentList[0].path}}-->
+            <b-form-group id="" label="Choose: ">
+              <draw-rectangle-board v-bind:imagesrc="serverUrl+documentList[0].path" :rect="rect"></draw-rectangle-board>
+            </b-form-group>
+            <b-button type="submit" variant="primary">Submit</b-button>
+          </b-form>
         </b-card>
       </div><!--/.col-->
     </div><!--/.row-->
@@ -15,27 +44,57 @@
 
   import vSelect from "vue-select"
 
+  import RectangleDrawBoard from '../components/RectangleDrawBoard.vue'
+
   export default {
     computed: {
       ...mapState({
-        document: ({document}) => document.document,
+        documentList: ({documentList}) => documentList.items,
+        parserId: ({route}) => route.params.parserId,
       })
     },
     beforeCreate() {
     },
     created(){
+      this.getDocumentListByParser(this.parserId)
     },
     data () {
       return {
+        parserRule:{
+          name:'',
+          description:'',
+          data:'',
+          ruleType:'boundary'
+        },
+        rect:{
+          startX:100,
+          startY:200,
+          w:100,
+          h:200
+        },
+        serverUrl: 'http://localhost:8000/'
       }
     },
     methods: {
       ...mapActions([
-        'getDocument'
+        'getDocumentListByParser',
+        'addParserRule'
       ]),
+      onSubmit(){
+        this.parserRule.data = this.rect.startX+","+this.rect.startY+","+this.rect.w+","+this.rect.h
+        // console.log(this.parserRule)
+        this.addParserRule([this.parserId, this.parserRule])
+      },
+      onReset(){
+
+      }
     },
     components: {
-      vSelect
+      vSelect,
+      'draw-rectangle-board':RectangleDrawBoard
     },
+    updated(){
+//      console.log(this.rect)
+    }
   }
 </script>

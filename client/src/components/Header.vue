@@ -13,7 +13,7 @@
       <b-nav-item-dropdown right>
         <template slot="button-content">
           <img :src="defaultAvatar" class="img-avatar" alt="">
-          <span class="d-md-down-none">{{auth.user.username}}</span>
+          <span class="d-md-down-none">{{auth.user.username}}</span><!--auth.user.username-->
         </template>
         <b-dropdown-header tag="div" class="text-center"><strong>Account</strong></b-dropdown-header>
         <a href="javascript:;" class="shrink-logout" @click="logout()">
@@ -32,7 +32,7 @@
   export default {
     computed: {
       ...mapState({
-        auth: state => state.auth,
+        auth: state => state.auth
       }),
       defaultAvatar() {
         return defaultAvatar

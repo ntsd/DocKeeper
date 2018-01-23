@@ -135,7 +135,7 @@
           actions: { label: 'Actions' }
         },
         currentPage: 1,
-        perPage: 5,
+        perPage: 10,
 //        totalRows: parserList.length,
         pageOptions: [{text: 5, value: 5}, {text: 10, value: 10}, {text: 15, value: 15}],
         sortBy: null,

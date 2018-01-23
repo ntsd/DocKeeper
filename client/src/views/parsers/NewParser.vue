@@ -71,6 +71,7 @@
       ]),
       onSubmit (evt) {
         evt.preventDefault();
+        console.log(this.form)
         this.addParser(this.form)
       },
       onReset (evt) {
