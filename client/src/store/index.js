@@ -10,6 +10,8 @@ import document from './modules/document'
 import auth from './modules/auth'
 import showmsg from './modules/showmsg'
 
+import createPersistedState from 'vuex-persistedstate'
+
 const debug = process.env.NODE_ENV !== 'production'
 Vue.use(Vuex)
 
@@ -26,5 +28,5 @@ export default new Vuex.Store({
   },
   strict: true,
   // strict: debug,
-  plugins: debug ? [createLogger()] : []
+  plugins: debug ? [createLogger(), createPersistedState()] : [createPersistedState()]
 })
