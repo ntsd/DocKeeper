@@ -80,14 +80,13 @@
                    title="Edit Document"
                    @ok="handleOk"
           >
-            <form @submit.stop.prevent="handleSubmit">
+            <form >
               <b-form-group id="" label="Parser Name:">
-                <b-form-input id="nameInput"
-                              type="text"
+                <input type="text"
                               v-model="modalEdit.name"
                               required
                               placeholder="Enter Parser name">
-                </b-form-input>
+                </input>
               </b-form-group>
               <b-form-group id="" label="Description:">
                 <b-form-input id="descriptionInput"
@@ -164,17 +163,14 @@
     methods: {
       ...mapActions([
         'getParserList',
-        'deleteParser'
+        'deleteParser',
+        'updateParser'
       ]),
-      handleOk (evt) {
-        evt.preventDefault()
-        this.handleSubmit()
-      },
-      handleSubmit () {
-        this.$refs.modal.hide()
+      handleOk (evt) {//todo
+        this.updateParser([this.modalEdit._id.$oid, this.modalEdit])
       },
       editButton(item){
-        this.modalEdit = item
+        this.modalEdit = JSON.parse(JSON.stringify(item)) // for deepcopy
       },
       onFiltered (filteredItems) {
         // Trigger pagination to update the number of buttons/pages due to filtering

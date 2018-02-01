@@ -1,7 +1,7 @@
 import api from '../../api'
 import {
   GET_PARSER,
-  UPDATE_PARSER, //Parser Rule
+  //Parser Rule
   GET_PARSER_RULE,
   ADD_PARSER_RULE,
   UPDATE_PARSER_RULE,
@@ -58,9 +58,6 @@ const actions = {
 
 const mutations = {
   [GET_PARSER](state,action){
-    state.parser = action.parser
-  },
-  [UPDATE_PARSER](state,action){
     state.parser = action.parser
   },
   [GET_PARSER_RULE](state,action){

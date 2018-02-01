@@ -57,7 +57,7 @@ const actions = {
     }, response => {
       showMsg(store,'更新用户资料失败!')
     })
-  }
+  },
 }
 
 

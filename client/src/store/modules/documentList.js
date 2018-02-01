@@ -110,7 +110,7 @@ const mutations = {
         newItems.push(action.document)
       }
       else{
-        newItems.push(state.items[i]) // use deep copy
+        newItems.push(state.items[i])
       }
     }
     state.items = newItems

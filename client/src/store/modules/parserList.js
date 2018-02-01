@@ -5,7 +5,7 @@ import {
   REQUEST_PARSER_LIST,
   GET_PARSER_LIST_FAILURE,
   SUCCESS_ADD_PARSER,
-  DELETE_PARSER
+  DELETE_PARSER, UPDATE_PARSER
 } from '../types'
 import router from '../../router'
 
@@ -57,6 +57,18 @@ const actions = {
         console.log(e)
       }
     )
+  },
+  updateParser(store, [parserId, parser]){
+    api.putParser(parserId, parser).then(response => {
+      store.commit(UPDATE_PARSER,{
+        parserId: parserId,
+        parser:parser
+      })
+    }).catch(
+      e => {
+        console.log(e)
+      }
+    )
   }
 }
 
@@ -68,6 +80,19 @@ const mutations = {
     state.isFetching = false
     state.isMore = action.isMore
     state.items = action.parserList
+  },
+  [UPDATE_PARSER](state,action){
+    const newItems = []
+    for (const i in state.items) {
+      if (state.items[i]._id.$oid === action.parserId) {
+        //state.items[i] = action.document; //i dunno why can't use
+        newItems.push(action.parser)
+      }
+      else{
+        newItems.push(state.items[i])
+      }
+    }
+    state.items = newItems
   },
   [DELETE_PARSER](state,action){
     state.items = state.items.filter(item => item._id.$oid !== action.parserId)

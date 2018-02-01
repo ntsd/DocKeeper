@@ -53,7 +53,9 @@
           var ctx = c.getContext("2d");
           ctx.drawImage(this.img,0,0)//, c.width, c.height * this.img.height / this.img.width);  // ctx.clearRect(0,0,800,800);
           ctx.setLineDash([6]);
-          ctx.lineWidth = this.img.w/400; // todo change size to scale default 6
+         // console.log('line width',this.img.width,Math.round(this.img.width/400))
+          ctx.lineWidth = Math.round(this.img.width/400); // todo change size to scale default 6
+          ctx.strokeStyle ='#ff0000'
           ctx.strokeRect(this.rect.startX, this.rect.startY, this.rect.w, this.rect.h);
         }
 

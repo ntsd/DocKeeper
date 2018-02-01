@@ -21,12 +21,12 @@ from bson.objectid import ObjectId
 from flask_bcrypt import Bcrypt
 
 # for ocr
-from server.utils import ImageOCR, RuleTypesExtract, PDF2Image
+from utils import ImageOCR, RuleTypesExtract, PDF2Image
 # from PIL import Image, ImageEnhance, ImageFilter
 
 import json
 
-from server import models
+import models
 
 from flask_cors import CORS
 
@@ -204,7 +204,8 @@ class DocumentUploadResource(Resource):
         if fileName[-4:] == '.pdf':  # if it pdf
             PDF2Image.pdf2image(fileFullPath, os.path.join(filePath, 'images/image.jpg'))  # convert pdf to image
         else:
-            file.save(os.path.join(filePath, 'images/image'+fileName[-4:]))  # this is preview path + file signature
+            PDF2Image.pdf2image(fileFullPath, os.path.join(filePath, 'images/image.jpg'))
+            # file.save(os.path.join(filePath, 'images/image'+fileName[-4:]))  # this is preview path + file signature
         # update document db
         document = models.Document.objects(id=documentId).get()
         document.path = fileFullPath
@@ -247,16 +248,17 @@ class DocumentResource(Resource):
     def delete(self, documentId):
         document = models.Document.objects(id=documentId)   # todo need to check permission of parser
         # to delete folder
-        folder = document.get().path.split('\\')[0]
-        shutil.rmtree(folder)
-        # for the_file in os.listdir(folder):
-        #     file_path = os.path.join(folder, the_file)
-        #     try:
-        #         if os.path.isfile(file_path):
-        #             os.unlink(file_path)
-        #         #elif os.path.isdir(file_path): shutil.rmtree(file_path)
-        #     except Exception as e:
-        #         print(e)
+        if document.get().path:
+            folder = document.get().path.split('\\')[0]
+            shutil.rmtree(folder)
+            # for the_file in os.listdir(folder):
+            #     file_path = os.path.join(folder, the_file)
+            #     try:
+            #         if os.path.isfile(file_path):
+            #             os.unlink(file_path)
+            #         #elif os.path.isdir(file_path): shutil.rmtree(file_path)
+            #     except Exception as e:
+            #         print(e)
 
         document.delete()
 

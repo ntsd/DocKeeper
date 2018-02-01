@@ -7,9 +7,9 @@
       <b-nav-item class="px-3">Dashboard</b-nav-item>
     </b-nav>
     <b-nav is-nav-bar class="ml-auto">
-      <b-nav-item class="d-md-down-none">
-        <i class="icon-bell"></i><span class="badge badge-pill badge-danger">5</span>
-      </b-nav-item>
+      <!--<b-nav-item class="d-md-down-none">-->
+        <!--<i class="icon-bell"></i><span class="badge badge-pill badge-danger">5</span>-->
+      <!--</b-nav-item>-->
       <b-nav-item-dropdown right>
         <template slot="button-content">
           <img :src="defaultAvatar" class="img-avatar" alt="">

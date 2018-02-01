@@ -25,7 +25,7 @@
 
             <b-form-group id="" label="Select File:">
               <!-- Customized labels -->
-              <b-form-file id="file_input2" v-model="form.file" choose-label="Attachment2"></b-form-file>
+              <b-form-file id="file_input2" v-model="form.file" placeholder="Choose a file..."></b-form-file>
                {{form.file && form.file.name}}
             </b-form-group>
 
@@ -80,7 +80,10 @@
       saveDocumentButton () {
         //evt.preventDefault();
 //        console.log(this.form);
-        this.addDocument(this.form)
+        if(this.form.file){
+          this.addDocument(this.form)
+        }
+
       },
       onReset (evt) {
         evt.preventDefault();

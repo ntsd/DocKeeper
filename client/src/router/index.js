@@ -31,18 +31,18 @@ const router = new Router({
   routes: [
     {
       path: '/',
-      redirect: '/dashboard',
+      redirect: '/parsers',//'/dashboard',
       name: 'Home',
       component: Full,
       meta: {
         requiresAuth: true
       },
       children: [
-        {
-          path: 'dashboard',
-          name: 'Dashboard',
-          component: Dashboard
-        },
+        // {
+        //   path: 'dashboard',
+        //   name: 'Dashboard',
+        //   component: Dashboard
+        // },
         {
           path: 'parsers',
           name: 'Parsers',

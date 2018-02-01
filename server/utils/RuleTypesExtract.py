@@ -1,4 +1,4 @@
-from server.utils import ImageOCR
+from utils import ImageOCR
 
 def boundaryExtract(data, im):
     x, y, w, h = map(int, map(float, data.split(",")))
