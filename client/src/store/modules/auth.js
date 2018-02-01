@@ -29,7 +29,7 @@ const actions = {
       }
       const token = response.data.access_token
       saveCookie('token',token)
-      store.dispatch('getUserInfo')
+      //store.dispatch('getUserInfo') // store user info no need to get in vue component
       store.commit(LOGIN_SUCCESS, {token: token })
       showMsg(store,'login success','success')
       router.push({path:'/'})
@@ -75,7 +75,7 @@ const mutations = {
   [LOGOUT_USER](state,action){
     state.token = getCookie('token') || null
     state.user = null
-    state.token = null
+    //state.token = null
   },
   [UPDATE_USER_SUCCESS](state,action){
     state.user = action.user

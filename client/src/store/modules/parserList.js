@@ -4,7 +4,8 @@ import {
   ADD_PARSER_LIST,
   REQUEST_PARSER_LIST,
   GET_PARSER_LIST_FAILURE,
-  SUCCESS_ADD_PARSER
+  SUCCESS_ADD_PARSER,
+  DELETE_PARSER
 } from '../types'
 import router from '../../router'
 
@@ -44,6 +45,18 @@ const actions = {
       .catch(e => {
         console.log(e)
       })
+  },
+  deleteParser(store, parserId){ // todo do not refresh at first time
+    // console.log('parserRule',parserId,parserRule)
+    api.deleteParser(parserId).then(response => {
+      store.commit(DELETE_PARSER,{
+        parserId: parserId
+      })
+    }).catch(
+      e => {
+        console.log(e)
+      }
+    )
   }
 }
 
@@ -55,6 +68,9 @@ const mutations = {
     state.isFetching = false
     state.isMore = action.isMore
     state.items = action.parserList
+  },
+  [DELETE_PARSER](state,action){
+    state.items = state.items.filter(item => item._id.$oid !== action.parserId)
   },
   [GET_PARSER_LIST_FAILURE](state){
     state.isFetching = false

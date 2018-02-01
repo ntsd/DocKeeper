@@ -18,28 +18,38 @@
 <script>
 import nav from '../_nav'
 import { Header as AppHeader, Sidebar, Aside as AppAside, Footer as AppFooter, Breadcrumb } from '../components/'
-
+import { mapActions } from 'vuex'
 export default {
   name: 'full',
-  components: {
-    AppHeader,
-    Sidebar,
-    AppAside,
-    AppFooter,
-    Breadcrumb
-  },
-  data () {
+  data() {
     return {
       nav: nav.items
     }
   },
   computed: {
-    name () {
+    name() {
       return this.$route.name
     },
-    list () {
+    list() {
       return this.$route.matched
-    }
+    },
+  },
+  beforeCreate(){
+  },
+  created (){
+    this.getUserInfo()
+  },
+  methods: {
+    ...mapActions([
+      'getUserInfo'
+    ])
+  },
+  components: {
+    AppHeader,
+      Sidebar,
+      AppAside,
+      AppFooter,
+      Breadcrumb
   }
 }
 </script>

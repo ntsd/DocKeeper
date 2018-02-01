@@ -49,6 +49,9 @@ export default {
   putParserRule : (parserId, parserRule) => {
     return ParserRuleResource.update({id:parserId}, parserRule)
   },
+  deleteParserRule : (parserId, parserRule) => {
+    return ParserRuleResource.delete({id:parserId}, parserRule)
+  },
   // Document
   getDocument : (documentId) => {
     return DocumentResource.get({id:documentId})

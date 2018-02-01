@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-12">
         <b-card header="<i class='fa fa-align-justify'></i> Parser Rule">
-          <b-form @submit="onSubmit" @reset="onReset" >
+          <b-form @reset="onReset" >
             <b-form-group id="" label="Parser Name:">
               <b-form-input id="nameInput"
                             type="text"
@@ -27,11 +27,11 @@
             </b-form-group>
             <!--this.documentList = {{this.documentList}}-->
             <!--<br>-->
-            <!--{{serverUrl+documentList[0].path}}-->
+            <!--{{apiRoot+documentList[0].path}}-->
             <b-form-group id="" label="Choose: ">
-              <draw-rectangle-board v-bind:imagesrc="serverUrl+documentList[0].path" :rect="rect"></draw-rectangle-board>
+              <draw-rectangle-board v-bind:imagesrc="apiRoot+documentList[0].imagePaths[0]" :rect="rect"></draw-rectangle-board>
             </b-form-group>
-            <b-button type="submit" variant="primary">Submit</b-button>
+            <b-button @click.stop="saveParserRuleButton" type="button" variant="primary">Submit</b-button>
           </b-form>
         </b-card>
       </div><!--/.col-->
@@ -46,7 +46,9 @@
 
   import RectangleDrawBoard from '../components/RectangleDrawBoard.vue'
 
-  export default {
+  import {API_ROOT} from "../../config"
+
+  export default {  // todo fix refresh at first time and data not sent
     computed: {
       ...mapState({
         documentList: ({documentList}) => documentList.items,
@@ -72,7 +74,7 @@
           w:100,
           h:200
         },
-        serverUrl: 'http://localhost:8000/'
+        apiRoot: API_ROOT
       }
     },
     methods: {
@@ -80,9 +82,9 @@
         'getDocumentListByParser',
         'addParserRule'
       ]),
-      onSubmit(){
+      saveParserRuleButton(){ // do not bug here
         this.parserRule.data = this.rect.startX+","+this.rect.startY+","+this.rect.w+","+this.rect.h
-        // console.log(this.parserRule)
+        // console.log(this.parserId, this.parserRule)
         this.addParserRule([this.parserId, this.parserRule])
       },
       onReset(){
@@ -94,7 +96,7 @@
       'draw-rectangle-board':RectangleDrawBoard
     },
     updated(){
-//      console.log(this.rect)
+      //console.log(this.rect)
     }
   }
 </script>

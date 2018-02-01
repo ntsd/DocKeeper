@@ -38,6 +38,12 @@ class ParserRule(db.EmbeddedDocument):
     description = db.StringField()
 
 
+class ExtractedRule(db.EmbeddedDocument):
+    name = db.StringField()
+    ruleType = db.StringField()
+    data = db.StringField()
+
+
 class Parser(db.Document):
     name = db.StringField(required=True)
     description = db.StringField()
@@ -69,6 +75,7 @@ class ExtractedData(db.DynamicEmbeddedDocument):
 class Document(db.DynamicDocument):
     name = db.StringField()
     path = db.StringField()
+    imagePaths = db.ListField(db.StringField())
     uploadBy = db.EmbeddedDocumentField(UserRef)
     parserRef = db.EmbeddedDocumentField(ParserRef)
     updated_at = db.DateTimeField(default=datetime.now)

@@ -18,7 +18,11 @@
       <div class="col-12">
         <b-card header="<i class='fa fa-align-justify'></i> Preview">
           <!--<img v-bind:src="'http://127.0.0.1:8000/' +document.path" alt="preview"/>-->
-          <img v-bind:src="apiRoot +document.path" class="img-fluid" alt="Responsive image" ref="imagePreview"/>
+          <div  v-for="imagePath in document.imagePaths">
+            {{imagePath}}
+            <img v-bind:src="apiRoot + imagePath" class="img-fluid" alt="Responsive image" ref="imagePreview"/>
+          </div>
+
         </b-card>
       </div><!--/.col-->
     </div><!--/.row-->

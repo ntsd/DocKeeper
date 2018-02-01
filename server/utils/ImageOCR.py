@@ -27,6 +27,7 @@ def preprocess(im):
 def image_to_string(image, lang='eng'):
     return pytesseract.image_to_string(image, lang)
 
+
 def createGrayScaleImage(path, outPath, preprocess="thresh"):
     # load the example image and convert it to grayscale
     image = cv2.imread(path)

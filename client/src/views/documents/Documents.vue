@@ -2,7 +2,7 @@
   <div class="animated fadeIn">
     <div class="row">
       <div class="col-12">
-        <b-card header="<i class='fa fa-align-justify'></i> Documents Table">
+        <!--<b-card header="<i class='fa fa-align-justify'></i> Documents Table">-->
           <div class="my-1 row">
             <div class="col-md-6">
               <b-form-group horizontal label="Rows per page" :label-cols="6">
@@ -55,6 +55,7 @@
               <!-- We use click.stop here to prevent a 'row-clicked' event from also happening -->
               <!--<b-btn size="sm" @click.stop="details(row.item,row.index,$event.target)">Details</b-btn>-->
               <b-btn v-b-modal.editModal @click.stop="editButton(row.item,$event.target)">Edit</b-btn>
+              <b-button v-b-modal.deleteModal @click.stop="deleteButton(row.item,$event.target)" variant="danger">Delete</b-button>
             </template>
           </b-table>
 
@@ -73,17 +74,15 @@
                    ref="modal"
                    title="Edit Document"
                    @ok="handleOk"
+
           >
-            <form @submit.stop.prevent="handleSubmit">
-              <b-form-group id="" label="Document Name:">
-                <b-form-input id="nameInput"
-                              type="text"
-                              v-model="modalEdit.name"
-                              required
-                              placeholder="Enter Document name">
-                </b-form-input>
+            <form>
+              <b-form-group label="Document Name:">
+                <input type='text' v-model="modalEdit.name"
+                              required>
+                </input>
               </b-form-group>
-              <b-form-group id="" label="Parser:">
+              <b-form-group label="Parser:">
                 <v-select
                   label="name"
                   :options=this.parserList
@@ -91,8 +90,17 @@
                 ></v-select>
               </b-form-group>
             </form>
+           </b-modal>
+          <b-modal id="deleteModal"
+                   centered
+                   ref="deleteModal"
+                     title="Delete Document"
+                     @ok="deleteOk"
+            >
+            <form @submit.stop.prevent="deleteSubmit">
+            </form>
           </b-modal>
-        </b-card>
+        <!--</b-card>-->
       </div><!--/.col-->
     </div><!--/.row-->
   </div>
@@ -139,32 +147,45 @@
           name: '',
           parserRef: null,
           uploadBy:'',
-          updated_at:'',
-          image_url:''
-        }
+          updated_at:''
+        },
+        modalDelete: null
       }
     },
     methods: {
       ...mapActions([
         'getParserList',
-        'getDocumentList'
+        'getDocumentList',
+        'deleteDocument',
+        'updateDocument'
       ]),
       handleOk (evt) {
-//        evt.preventDefault()
-        this.handleSubmit()
-      },
-      handleSubmit () {
-//        this.names.push()this.name
-        this.$refs.modal.hide()
+        this.modalEdit.parserRef = {
+          "id": {
+            "$oid": this.modalEdit.parserRef._id.$oid
+          },
+          "name": this.modalEdit.parserRef.name
+        }
+        this.updateDocument([this.modalEdit._id.$oid, this.modalEdit])
       },
       editButton(item, button){
-        this.modalEdit = item
-//        this.$root.$emit('bv::show::editModal', 'editModal', button)
+        this.modalEdit = JSON.parse(JSON.stringify(item)) // for deep
       },
       onFiltered (filteredItems) {
         // Trigger pagination to update the number of buttons/pages due to filtering
         this.totalRows = filteredItems.length
         this.currentPage = 1
+      },
+      deleteButton(item, button){
+        // todo delete button
+        this.modalDelete = item
+      },
+      deleteOk(){
+        this.deleteDocument(this.modalDelete._id.$oid)
+        this.deleteSubmit()
+      },
+      deleteSubmit(){
+        this.$refs.deleteModal.hide()
       }
     },
     components: {

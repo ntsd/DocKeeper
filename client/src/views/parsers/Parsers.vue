@@ -1,8 +1,8 @@
 <template>
   <div class="animated fadeIn">
     <div class="row">
-      <div class="col-12">
-        <b-card header="<i class='fa fa-align-justify'></i> Parsers Table">
+      <div class="col-12" >
+        <!--<b-card header="<i class='fa fa-align-justify'></i> Parsers Table">-->
           <div class="my-1 row">
             <div class="col-md-6">
               <b-form-group horizontal label="Rows per page" :label-cols="6">
@@ -65,6 +65,7 @@
             </template>
             <template slot="actions" scope="row">
               <b-btn v-b-modal.editModal @click.stop="editButton(row.item)">Edit</b-btn>
+              <b-button v-b-modal.deleteModal @click.stop="deleteButton(row.item,$event.target)" variant="danger">Delete</b-button>
             </template>
           </b-table>
 
@@ -101,7 +102,17 @@
               </b-form-group>
             </form>
           </b-modal>
-        </b-card>
+        <b-modal id="deleteModal"
+                 centered
+                 ref="deleteModal"
+                 title="Delete Document"
+                 @ok="deleteOk"
+        >
+          <form @submit.stop.prevent="deleteSubmit">
+          </form>
+        </b-modal>
+
+        <!--</b-card>-->
       </div><!--/.col-->
     </div><!--/.row-->
   </div>
@@ -146,12 +157,14 @@
           owners: null,
           tags:[],
           description:''
-        }
+        },
+        deleteModal: null
       }
     },
     methods: {
       ...mapActions([
-        'getParserList'
+        'getParserList',
+        'deleteParser'
       ]),
       handleOk (evt) {
         evt.preventDefault()
@@ -167,6 +180,17 @@
         // Trigger pagination to update the number of buttons/pages due to filtering
         this.totalRows = filteredItems.length
         this.currentPage = 1
+      },
+      deleteButton(item, button){
+        // todo delete button
+        this.modalDelete = item
+      },
+      deleteOk(){
+        this.deleteParser(this.modalDelete._id.$oid)
+        this.deleteSubmit()
+      },
+      deleteSubmit(){
+        this.$refs.deleteModal.hide()
       }
     },
     components:{

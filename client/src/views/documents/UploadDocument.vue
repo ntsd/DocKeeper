@@ -6,7 +6,7 @@
           <div slot="header">
             <i class='fa fa-align-justify'></i> Upload Document
           </div>
-          <b-form @submit="onSubmit" @reset="onReset" v-if="show">
+          <b-form @reset="onReset" v-if="show">
             <b-form-group id="" label="Document Name:">
               <b-form-input id="nameInput"
                             type="text"
@@ -29,7 +29,7 @@
                {{form.file && form.file.name}}
             </b-form-group>
 
-            <b-button type="submit" variant="primary">Submit</b-button>
+            <b-button @click.stop="saveDocumentButton" type="button" variant="primary">Save</b-button>
 
           </b-form>
         </b-card>
@@ -77,8 +77,8 @@
         'getParserList',
         'addDocument'
       ]),
-      onSubmit (evt) {
-        evt.preventDefault();
+      saveDocumentButton () {
+        //evt.preventDefault();
 //        console.log(this.form);
         this.addDocument(this.form)
       },

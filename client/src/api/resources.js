@@ -5,7 +5,7 @@ import { getCookie,signOut,isLogin } from '../utils/authService'
 
 Vue.use(VueResource)
 
-Vue.http.options.crossOrigin = true
+Vue.http.options.crossOrigin = false//true it will has options
 Vue.http.options.credentials = false
 
 Vue.http.interceptors.push((request, next)=>{

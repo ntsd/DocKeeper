@@ -6,7 +6,7 @@
           <div slot="header">
             <i class='fa fa-align-justify'></i> New Parser
           </div>
-          <b-form @submit="onSubmit" @reset="onReset" v-if="show">
+          <b-form @reset="onReset" v-if="show">
             <b-form-group id="" label="Parser Name:">
               <b-form-input id="nameInput"
                             type="text"
@@ -19,14 +19,13 @@
               <b-form-input id="descriptionInput"
                             type="text"
                             v-model="form.description"
-                            required
                             placeholder="Enter Description">
               </b-form-input>
             </b-form-group>
             <b-form-group id="" label="Tags:">
               <input-tag :on-change="changeTags" placeholder="Add Tags" :tags="form.tags"></input-tag>
             </b-form-group>
-            <b-button type="submit" variant="primary">Submit</b-button>
+            <b-button @click.stop="saveParserButton" type="button" variant="primary">Submit</b-button>
           </b-form>
           <!--<b-form-fieldset>-->
             <!--<b-input-group left="Parser Name" right="">-->
@@ -69,9 +68,8 @@
       ...mapActions([
         'addParser'
       ]),
-      onSubmit (evt) {
-        evt.preventDefault();
-        console.log(this.form)
+      saveParserButton (evt) {
+        // console.log(this.form)
         this.addParser(this.form)
       },
       onReset (evt) {

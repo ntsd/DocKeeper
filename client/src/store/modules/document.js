@@ -1,7 +1,7 @@
 import api from '../../api'
 import {
   GET_DOCUMENT,
-  EXTRACT_DOCUMENT
+  EXTRACT_DOCUMENT,
 } from '../types'
 
 const state = {

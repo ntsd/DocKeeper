@@ -38,16 +38,20 @@
         return defaultAvatar
       }
     },
+    beforeCreate() {
+    },
     created (){
-      if(this.auth.token){
-        this.getUserInfo()
-      }
+      // if(this.auth.token){  /// move to full containers
+      //   // console.log(this.auth.token)
+      //   this.getUserInfo()
+      // }else{
+      //
+      // }
     },
     methods: {
       ...mapActions([
         'changeStyleMode',
         'logout',
-        'getUserInfo'
       ]),
       sidebarToggle (e) {
         e.preventDefault()

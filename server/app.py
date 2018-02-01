@@ -1,4 +1,4 @@
-import os
+import os, shutil
 
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api, abort
@@ -21,7 +21,7 @@ from bson.objectid import ObjectId
 from flask_bcrypt import Bcrypt
 
 # for ocr
-from server.utils import ImageOCR
+from server.utils import ImageOCR, RuleTypesExtract, PDF2Image
 # from PIL import Image, ImageEnhance, ImageFilter
 
 import json
@@ -151,7 +151,7 @@ class DocumentsListResource(Resource):
 class DocumentAddResource(Resource):
     @jwt_required
     def post(self):
-        current_user = get_jwt_identity()
+        current_user = get_jwt_identity()  # todo need to check permission of parser
         user = models.UserRef(username=current_user.split()[0], id=current_user.split()[1])
         document_json = request.get_json(force=True)
         # print(document_json)
@@ -161,17 +161,28 @@ class DocumentAddResource(Resource):
         return jsonify(document)
 
 
-class DocumentExtractResource(Resource):
+class DocumentExtractResource(Resource):  # todo extract only Rule or Main or All for 1 doc
     @jwt_required
-    def get(self, documentId):
+    def get(self, documentId):   # todo need to check permission of parser
         document = models.Document.objects(id=documentId).get()
-        # ocr
-        im = ImageOCR.Image.open(document.path)
-        im_out = ImageOCR.preprocess(im)
-        text = ImageOCR.pytesseract.image_to_string(im_out, lang='eng+tha')
+        # load image
+        im = ImageOCR.Image.open(document.path) # ImageOCR.cv2.imread(document.path)
+        # load parser
+        # print(document.parserRef.id.id)
+        parserRules = models.Parser.objects(id=document.parserRef.id.id).get().parserRules
+        extractedRules = []
+        for rule in parserRules: # todo need to crop img
+            #  im_out = ImageOCR.preprocess(im)
+            text = RuleTypesExtract.extractProcess(rule, im)  # ImageOCR.pytesseract.image_to_string(im_out, lang='eng')  #+tha')
+            extractedRule = models.ExtractedRule()
+            extractedRule.name = rule.name
+            extractedRule.data = text
+            extractedRule.ruleType = rule.ruleType
+            extractedRules.append(extractedRule)
         # models.Document.objects(id=documentId).update_one(textOCR=text)
         extractedData = models.ExtractedData()
-        extractedData.full_text = text
+        # extractedData.full_text = text # no need to extract fulltext anymore
+        extractedData.extractedRules = extractedRules
         document.extracted = extractedData
         document.save()
         return jsonify(extractedData)
@@ -179,17 +190,32 @@ class DocumentExtractResource(Resource):
 
 class DocumentUploadResource(Resource):
     @jwt_required
-    def post(self, documentId):
+    def post(self, documentId):   # todo need to check permission of parser
         # print(request.form, request.files)
         file = request.files['document-file']
         parserId = request.form['parserId']
         fileName = secure_filename(file.filename)
         filePath = os.path.join(app.config['DOCUMENTS_FOLDER'], parserId+'/'+documentId)
         if not os.path.exists(filePath):
-                os.makedirs(filePath)
+            os.makedirs(filePath)
+            os.makedirs(filePath+'/images')
         fileFullPath = os.path.join(filePath, fileName)  # os.path.join(filePath, filename)
         file.save(fileFullPath)
-        models.Document.objects(id=documentId).update_one(path=fileFullPath)
+        if fileName[-4:] == '.pdf':  # if it pdf
+            PDF2Image.pdf2image(fileFullPath, os.path.join(filePath, 'images/image.jpg'))  # convert pdf to image
+        else:
+            file.save(os.path.join(filePath, 'images/image'+fileName[-4:]))  # this is preview path + file signature
+        # update document db
+        document = models.Document.objects(id=documentId).get()
+        document.path = fileFullPath
+        # get path of all image
+        imagePaths = []
+        for file in os.listdir(filePath+'/images'):
+            if file.endswith(".jpg"):
+                imagePaths.append(os.path.join(filePath+'/images', file))
+        document.imagePaths = imagePaths
+        document.save()
+        # models.Document.objects(id=documentId).update_one(path=fileFullPath)
 
         return jsonify(fileFullPath)
 
@@ -197,12 +223,12 @@ class DocumentUploadResource(Resource):
 class DocumentResource(Resource):
     @jwt_required
     def get(self, documentId):
-        document = models.Document.objects(id=documentId).get()
+        document = models.Document.objects(id=documentId).get()   # todo need to check permission of parser
         return jsonify(document)
 
     @jwt_required
     def put(self, documentId):
-        document = models.Document.objects(id=documentId).get()
+        document = models.Document.objects(id=documentId).get()   # todo need to check permission of parser
         document_json = request.get_json(force=True)
         for (key, val) in document_json.items():
             # print(key, val)
@@ -219,8 +245,21 @@ class DocumentResource(Resource):
 
     @jwt_required
     def delete(self, documentId):
-        document = models.Document.objects(id=documentId)
+        document = models.Document.objects(id=documentId)   # todo need to check permission of parser
+        # to delete folder
+        folder = document.get().path.split('\\')[0]
+        shutil.rmtree(folder)
+        # for the_file in os.listdir(folder):
+        #     file_path = os.path.join(folder, the_file)
+        #     try:
+        #         if os.path.isfile(file_path):
+        #             os.unlink(file_path)
+        #         #elif os.path.isdir(file_path): shutil.rmtree(file_path)
+        #     except Exception as e:
+        #         print(e)
+
         document.delete()
+
         return jsonify('deleted')
 
 
@@ -285,7 +324,7 @@ class ParserResource(Resource):
 
     @jwt_required
     def put(self, parserId):
-        current_user = get_jwt_identity()
+        current_user = get_jwt_identity()  # todo need to check permission of parser
         current_user_username, current_user_id = current_user.split()
         parser_json = request.get_json(force=True)
         parser = models.Parser.objects(id=parserId).get()
@@ -303,7 +342,7 @@ class ParserResource(Resource):
         return jsonify(parser)
 
     @jwt_required
-    def delete(self, parserId):
+    def delete(self, parserId):  # todo need to check permission of parser
         parser = models.Parser.objects(id=parserId)
         parser.delete()
         return jsonify('deleted')
@@ -313,14 +352,14 @@ class ParserRulesResource(Resource):
     @jwt_required
     def get(self, parserId):
         current_user = get_jwt_identity()
-        current_user_username, current_user_id = current_user.split()  # todo need to check owner
+        current_user_username, current_user_id = current_user.split()   # todo need to check permission of parser
         parser = models.Parser.objects(id=parserId).get()
         return jsonify(results=parser.parserRules)
 
     @jwt_required
     def post(self, parserId):
         current_user = get_jwt_identity()
-        current_user_username, current_user_id = current_user.split()  # todo need to check owner
+        current_user_username, current_user_id = current_user.split()   # todo need to check permission of parser
         parser = models.Parser.objects(id=parserId).get()
         parserRule_json = request.get_json(force=True)
         parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
@@ -333,7 +372,7 @@ class ParserRulesResource(Resource):
     @jwt_required
     def put(self, parserId):
         current_user = get_jwt_identity()
-        current_user_username, current_user_id = current_user.split()  # todo need to check owner
+        current_user_username, current_user_id = current_user.split()  # todo need to check permission of parser
         parserRule_json = request.get_json(force=True)
         parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
         parser = models.Parser.objects(Q(id=parserId) and Q(parserRules__oid=parserRule.oid))
@@ -347,7 +386,7 @@ class ParserRulesResource(Resource):
     @jwt_required
     def delete(self, parserId):
         current_user = get_jwt_identity()
-        current_user_username, current_user_id = current_user.split()  # todo need to check owner
+        current_user_username, current_user_id = current_user.split()  # todo need to check permission of parser
         parserRule_json = request.get_json(force=True)
         parser = models.Parser.objects(Q(id=parserId))
         updated = parser.update_one(pull__parserRules__oid=parserRule_json['oid']['$oid'])
