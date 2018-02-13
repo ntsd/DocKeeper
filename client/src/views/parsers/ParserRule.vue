@@ -48,31 +48,43 @@
 
   import {API_ROOT} from "../../config"
 
-  export default {  // todo fix refresh at first time and data not sent
+  export default {
     computed: {
       ...mapState({
         documentList: ({documentList}) => documentList.items,
         parserId: ({route}) => route.params.parserId,
+        parserRuleId: ({route}) => route.params.parserRuleId,
+        parserRules: ({parser}) => parser.parser.parserRules
       })
     },
     beforeCreate() {
     },
     created(){
       this.getDocumentListByParser(this.parserId)
+      if(this.parserRuleId !== "new"){
+        //console.log('parser rules',this.parserRules)
+        const parserRuleId = this.parserRuleId
+        const parserRule = this.parserRules.filter(function( parserRule ) {
+          return parserRule.oid.$oid === parserRuleId;
+        })[0];
+        //console.log('parser rules',parserRule)
+        this.parserRule = parserRule
+        this.rect = this.parserRule.data
+      }
     },
     data () {
       return {
         parserRule:{
           name:'',
           description:'',
-          data:'',
+          data:null,
           ruleType:'boundary'
         },
         rect:{
-          startX:100,
-          startY:200,
-          w:100,
-          h:200
+          x:0,
+          y:0,
+          w:0,
+          h:0
         },
         apiRoot: API_ROOT
       }
@@ -83,8 +95,7 @@
         'addParserRule'
       ]),
       saveParserRuleButton(){ // do not bug here
-        this.parserRule.data = this.rect.startX+","+this.rect.startY+","+this.rect.w+","+this.rect.h
-        // console.log(this.parserId, this.parserRule)
+        this.parserRule.data = this.rect
         this.addParserRule([this.parserId, this.parserRule])
       },
       onReset(){

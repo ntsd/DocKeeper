@@ -2,7 +2,7 @@ import api from '../../api'
 import {
   GET_PARSER,
   //Parser Rule
-  GET_PARSER_RULE,
+  //GET_PARSER_RULE,
   ADD_PARSER_RULE,
   UPDATE_PARSER_RULE,
   DELETE_PARSER_RULE
@@ -11,8 +11,6 @@ import router from '../../router'
 
 const state = {
   parser: null,
-  parserRules: null,
-  parserRule:null
 }
 
 const actions = {
@@ -27,9 +25,9 @@ const actions = {
     })
   },
   //parser Rule
-  addParserRule(store, [parserId, parserRule]){ // todo do not refresh at first time
+  addParserRule(store, [parserId, parserRule]){
     // console.log('parserRule',parserId,parserRule)
-    api.addParserRule(parserId, parserRule).then(response => {
+    api.putParserRule(parserId, parserRule).then(response => { //ue put because can update  and add
       const json = response.data
       store.commit(ADD_PARSER_RULE,{
         parser: json
@@ -59,9 +57,6 @@ const actions = {
 const mutations = {
   [GET_PARSER](state,action){
     state.parser = action.parser
-  },
-  [GET_PARSER_RULE](state,action){
-    state.parserRule = action.parserRule
   },
   [ADD_PARSER_RULE](state,action){
     state.parser += action.parser

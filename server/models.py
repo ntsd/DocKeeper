@@ -34,7 +34,7 @@ class ParserRule(db.EmbeddedDocument):
     oid = db.ObjectIdField(required=True, default=lambda: ObjectId())
     name = db.StringField(required=True)
     ruleType = db.StringField()
-    data = db.StringField()
+    data = db.DynamicField()
     description = db.StringField()
 
 

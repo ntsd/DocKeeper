@@ -377,13 +377,16 @@ class ParserRulesResource(Resource):
         current_user_username, current_user_id = current_user.split()  # todo need to check permission of parser
         parserRule_json = request.get_json(force=True)
         parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
-        parser = models.Parser.objects(Q(id=parserId) and Q(parserRules__oid=parserRule.oid))
-        updated = parser.update_one(set__parserRules__S=parserRule)
-        if updated:
-            return jsonify(parser)
-        else:
-            models.Parser.objects.update_one(push__parserRules=parserRule)
-            return jsonify(parser)
+        parsers = models.Parser.objects(Q(id=parserId))  # .get()
+        updated = parsers.filter(parserRules__oid=parserRule.oid).update_one(set__parserRules__S=parserRule)
+        if not updated:  # push if not exist
+            parser = parsers.get()
+            if parserRule.name in [i.name for i in parser.parserRules]:
+                abort(409, description="parserule already exists.")
+            parser.parserRules += [parserRule]
+            parser.save()
+            #parsers.update_one(push__parserRules=parserRule)
+        return jsonify(parsers)
 
     @jwt_required
     def delete(self, parserId):

@@ -46,7 +46,7 @@ const actions = {
         console.log(e)
       })
   },
-  deleteParser(store, parserId){ // todo do not refresh at first time
+  deleteParser(store, parserId){
     // console.log('parserRule',parserId,parserRule)
     api.deleteParser(parserId).then(response => {
       store.commit(DELETE_PARSER,{

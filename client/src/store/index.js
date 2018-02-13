@@ -26,7 +26,7 @@ export default new Vuex.Store({
     document,
     showmsg,
   },
-  strict: true,
+  strict: false,
   // strict: debug,
   plugins: debug ? [createLogger(), createPersistedState()] : [createPersistedState()]
 })

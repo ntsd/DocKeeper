@@ -178,7 +178,6 @@
         this.currentPage = 1
       },
       deleteButton(item, button){
-        // todo delete button
         this.modalDelete = item
       },
       deleteOk(){

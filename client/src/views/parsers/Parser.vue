@@ -260,7 +260,6 @@
         this.$refs.deleteParserRuleModal.hide()
       },
       deleteDocumentButton(item, button){
-        // todo delete button
         this.documentToDelete = item
       },
       deleteDocumentOk(){

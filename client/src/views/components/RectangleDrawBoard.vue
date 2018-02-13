@@ -13,8 +13,8 @@
     props: {
       imagesrc:'',
       rect:{
-        startX:0,
-        startY:0,
+        x:0,
+        y:0,
         w:0,
         h:0
       }
@@ -54,9 +54,9 @@
           ctx.drawImage(this.img,0,0)//, c.width, c.height * this.img.height / this.img.width);  // ctx.clearRect(0,0,800,800);
           ctx.setLineDash([6]);
          // console.log('line width',this.img.width,Math.round(this.img.width/400))
-          ctx.lineWidth = Math.round(this.img.width/400); // todo change size to scale default 6
+          ctx.lineWidth = Math.round(this.img.width/400);
           ctx.strokeStyle ='#ff0000'
-          ctx.strokeRect(this.rect.startX, this.rect.startY, this.rect.w, this.rect.h);
+          ctx.strokeRect(this.rect.x, this.rect.y, this.rect.w, this.rect.h);
         }
 
       },
@@ -66,8 +66,8 @@
 //          x: event.pageX,
 //          y: event.pageY
 //        }
-        this.rect.startX = this.mouse.current.x;
-        this.rect.startY = this.mouse.current.y;
+        this.rect.x = this.mouse.current.x;
+        this.rect.y = this.mouse.current.y;
 
 
       },
@@ -87,8 +87,8 @@
         }
        // console.log(this.mouse.current.x, this.mouse.current.y)
         if (this.mouse.down) {
-          this.rect.w = this.mouse.current.x - this.rect.startX;
-          this.rect.h = this.mouse.current.y - this.rect.startY ;
+          this.rect.w = this.mouse.current.x - this.rect.x;
+          this.rect.h = this.mouse.current.y - this.rect.y ;
           // ctx.clearRect(0,0,canvas.width,canvas.height);
           this.draw(event)
         }
@@ -105,15 +105,20 @@
       ctx.translate(0.5, 0.5);
       ctx.imageSmoothingEnabled= false;
       // var img = document.getElementById("imageRef");
-      var img2 = new Image
-      img2.onload = function(){
-        c.width = img2.width
-        c.height = img2.height
+      const rect = this.rect // for use in onload function
+      this.img = new Image
+      this.img.onload = function(){
+        c.width = this.width
+        c.height = this.height
         //console.log(c.width, c.height)
-        ctx.drawImage(img2,0,0)//, c.width, c.height * img2.height / img2.width)
+        ctx.drawImage(this,0,0)//, c.width, c.height * img2.height / img2.width)
+        //draw init line when get load
+        ctx.setLineDash([6]);
+        ctx.lineWidth = Math.round(this.width/400);
+        ctx.strokeStyle ='#ff0000'
+        ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
       }
-      img2.src = this.imagesrc
-      this.img = img2
+      this.img.src = this.imagesrc
 
       // resize after window update
       // console.log(this.$el)
