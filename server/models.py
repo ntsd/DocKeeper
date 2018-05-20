@@ -5,16 +5,11 @@ from bson.objectid import ObjectId
 db = MongoEngine()
 
 
-class Role(db.EmbeddedDocument):
-    name = db.StringField()
-    description = db.StringField()
-
-
 class User(db.Document):
     username = db.StringField(unique=True, max_length=20, required=True)
     password = db.StringField(required=True)
     email = db.EmailField(unique=True, required=True)
-    role = db.EmbeddedDocumentField(Role)
+    role = db.StringField()
     updated_at = db.DateTimeField(default=datetime.now)
     created_at = db.DateTimeField(default=datetime.now)
 
@@ -36,12 +31,7 @@ class ParserRule(db.EmbeddedDocument):
     ruleType = db.StringField()
     data = db.DynamicField()
     description = db.StringField()
-
-
-class ExtractedRule(db.EmbeddedDocument):
-    name = db.StringField()
-    ruleType = db.StringField()
-    data = db.StringField()
+    charWhitelist = db.StringField()
 
 
 class Parser(db.Document):
@@ -55,6 +45,7 @@ class Parser(db.Document):
     classificationData = db.BinaryField()
     updated_at = db.DateTimeField(default=datetime.now)
     created_at = db.DateTimeField(default=datetime.now)
+    documents_count = db.IntField()
 
     def save(self, *args, **kwargs):
         if not self.created_at:
@@ -68,8 +59,15 @@ class ParserRef(db.EmbeddedDocument):
     id = db.ReferenceField(Parser)
 
 
+class ExtractedRule(db.DynamicEmbeddedDocument):
+    name = db.StringField()
+    ruleType = db.StringField()
+    data = db.StringField()
+
+
 class ExtractedData(db.DynamicEmbeddedDocument):
     pass
+   # extractedRules = db.ListField(ExtractedRule)
 
 
 class Document(db.DynamicDocument):
@@ -80,7 +78,8 @@ class Document(db.DynamicDocument):
     parserRef = db.EmbeddedDocumentField(ParserRef)
     updated_at = db.DateTimeField(default=datetime.now)
     created_at = db.DateTimeField(default=datetime.now)
-    # extracted = db.EmbeddedDocumentField(ExtractedData)
+    extracted = db.ListField(db.EmbeddedDocumentField(ExtractedData))
+    imageFeatures = db.ListField(db.StringField())
 
     def save(self, *args, **kwargs):
         if not self.created_at:

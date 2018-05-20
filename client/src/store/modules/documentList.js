@@ -45,16 +45,23 @@ const actions = {
     })
   },
   addDocument(store, form){
-    const document = {name:form.name,
-      parserRef:{
-        id:form.parserRef._id,
-        name:form.parserRef.name
-      }
-    };
+    let document = {};
+    if(form.parserRef){
+      document = {name:form.name,
+        parserRef:{
+          id:form.parserRef._id,
+          name:form.parserRef.name
+        }
+      };
+    }
+    else{
+      document = {name:form.name};
+    }
+
     // console.log(document)
     api.addDocument(document).then(response => {
       const document = response.data
-      api.uploadDocument(document._id.$oid, form.parserRef._id.$oid, form.file).then(response => {
+      api.uploadDocument(document._id.$oid, form.file).then(response => {
         // console.log(response.data)
         document.path = response.data
       })

@@ -48,7 +48,11 @@
                 {{row.value}}
               </router-link>
             </template>
-            <template slot="parserRef" scope="row">{{row.value.name}}</template>
+            <template slot="parserRef" scope="row">
+              <router-link v-if="row.value" :to="{name: 'Parser', params: {parserId: row.value.id.$oid}}">
+                {{row.value.name}}
+              </router-link>
+            </template>
             <template slot="uploadBy" scope="row">{{row.value.username}}</template>
             <template slot="updated_at" scope="row">{{moment(row.value.$date).format('YYYY-MM-DD')}}</template>
             <template slot="actions" scope="row">

@@ -2,7 +2,7 @@
 // import parser from './parser'
 // import parserRule from './parserRule'
 // import document from './document'
-import {UserResource, ParserResource, ParserRuleResource, DocumentResource, http} from './resources'
+import {UserResource, ParserResource, ParserRuleResource, DocumentResource, http, UserRefResource} from './resources'
 
 export default {
   // User
@@ -69,10 +69,9 @@ export default {
     return DocumentResource.save({id:'add'}, document)
   },
 
-  uploadDocument : (documentId, parserId, documentFile) => {
+  uploadDocument : (documentId, documentFile) => {
     var formData = new FormData();
     formData.append('document-file', documentFile);
-    formData.append('parserId', parserId);
     return http.post('http://127.0.0.1:8000/documents/upload/'+documentId, formData, {
           emulateJSON: true,
           headers: {
@@ -95,6 +94,12 @@ export default {
     return DocumentResource.get({id:'list'})
   },
 
+  getUserRef: (username) => {
+    return UserRefResource.get({username: username})
+  },
+  postExtractPreview: (documentId, parserRule) => {
+    return ParserRuleResource.save({id:'extract/'+documentId}, parserRule)
+  }
   // user,
   // parser,
   // parserRule,

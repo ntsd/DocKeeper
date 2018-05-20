@@ -64,8 +64,10 @@
               {{moment(row.value.$date).format('YYYY-MM-DD')}}
             </template>
             <template slot="actions" scope="row">
-              <b-btn v-b-modal.editModal @click.stop="editButton(row.item)">Edit</b-btn>
-              <b-button v-b-modal.deleteModal @click.stop="deleteButton(row.item,$event.target)" variant="danger">Delete</b-button>
+              <div v-if="isOwner(row.item.owners)">
+                <b-btn v-b-modal.editModal @click.stop="editButton(row.item)">Edit</b-btn>
+                <b-button v-b-modal.deleteModal @click.stop="deleteButton(row.item,$event.target)" variant="danger">Delete</b-button>
+              </div>
             </template>
           </b-table>
 
@@ -86,7 +88,6 @@
                               v-model="modalEdit.name"
                               required
                               placeholder="Enter Parser name">
-                </input>
               </b-form-group>
               <b-form-group id="" label="Description:">
                 <b-form-input id="descriptionInput"
@@ -96,20 +97,23 @@
                               placeholder="Enter Description">
                 </b-form-input>
               </b-form-group>
+              <b-form-group id="" label="Editors:">
+                <input-tag placeholder="Add Editors Username" :tags="modalEdit.editors"></input-tag>
+              </b-form-group>
               <b-form-group id="" label="Tags:">
                 <input-tag placeholder="Add Tags" :tags="modalEdit.tags"></input-tag>
               </b-form-group>
             </form>
           </b-modal>
-        <b-modal id="deleteModal"
-                 centered
-                 ref="deleteModal"
-                 title="Delete Document"
-                 @ok="deleteOk"
-        >
-          <form @submit.stop.prevent="deleteSubmit">
-          </form>
-        </b-modal>
+          <b-modal id="deleteModal"
+                   centered
+                   ref="deleteModal"
+                   title="Delete Document"
+                   @ok="deleteOk"
+          >
+            <form @submit.stop.prevent="deleteSubmit">
+            </form>
+          </b-modal>
 
         <!--</b-card>-->
       </div><!--/.col-->
@@ -121,12 +125,14 @@
   /*eslint-disable */
   import InputTag from 'vue-input-tag'
   import { mapState, mapActions } from 'vuex'
+  import api from '../../api/index'
   const parserList = [];
 
   export default {
     computed: {
       ...mapState({
-        parserList: ({parserList}) => parserList.items
+        parserList: ({parserList}) => parserList.items,
+        auth: state => state.auth
       })
     },
     beforeCreate() {
@@ -154,10 +160,12 @@
         modalEdit: {
           name: '',
           owners: null,
+          editors:[],
           tags:[],
           description:''
         },
-        deleteModal: null
+        deleteModal: null,
+        //input_editors: []
       }
     },
     methods: {
@@ -166,11 +174,31 @@
         'deleteParser',
         'updateParser'
       ]),
+      onInputTagChange(){ // todo use in input tag
+        var editorUserRefList = []
+        for (let a = 0; a < this.modalEdit.editors.length; a++) {
+          api.getUserRef(this.modalEdit.editors[a]).then(function (response) {
+            console.log(response.data)
+            editorUserRefList[a]= response.data
+          })
+        }
+        // this.modalEdit.editors.map(function(username){ //can't use cuz need to use json array data
+        //  //https://stackoverflow.com/questions/27955104/json-stringify-removing-data-from-object
+        //   api.getUserRef(username).then(function (response) {
+        //     const userRef = response.data
+        //     editorUserRefList.push({'username': userRef.username, 'id': {'$oid': userRef.id.$oid}})
+        //   })
+        // })
+        this.modalEdit.editors =editorUserRefList
+     },
       handleOk (evt) {//todo
+        // this.modalEdit.editors = JSON.parse(JSON.stringify(editorUserRefList))
+        // console.log(this.modalEdit)
         this.updateParser([this.modalEdit._id.$oid, this.modalEdit])
       },
       editButton(item){
         this.modalEdit = JSON.parse(JSON.stringify(item)) // for deepcopy
+        this.modalEdit.editors = this.modalEdit.editors.map(userRef => userRef.username || userRef)
       },
       onFiltered (filteredItems) {
         // Trigger pagination to update the number of buttons/pages due to filtering
@@ -186,6 +214,16 @@
       },
       deleteSubmit(){
         this.$refs.deleteModal.hide()
+      },
+      isOwner(owners){
+        // console.log(owners)
+        for(let i=0;i<owners.length;i++){
+          // console.log(owners[i].username,this.auth.user.username)
+          if(owners[i].username === this.auth.user.username){
+            return true
+          }
+        }
+        return false
       }
     },
     components:{

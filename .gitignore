@@ -2,3 +2,9 @@
 \.idea/
 
 server/static/documents/
+
+\venv/
+
+server/utils/__pycache__/
+
+server/__pycache__/

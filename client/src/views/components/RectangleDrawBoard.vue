@@ -18,6 +18,11 @@
         w:0,
         h:0
       }
+    },watch: {
+      imagesrc: function(newVal, oldVal) { // event when prop change
+        //console.log('Prop changed: ', newVal, ' | was: ', oldVal)
+        this.img.src = newVal
+      }
     },
     data: function () {
       return {

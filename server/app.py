@@ -22,6 +22,7 @@ from flask_bcrypt import Bcrypt
 
 # for ocr
 from utils import ImageOCR, RuleTypesExtract, PDF2Image
+from utils import ImageFeatureExtraction
 # from PIL import Image, ImageEnhance, ImageFilter
 
 import json
@@ -29,6 +30,8 @@ import json
 import models
 
 from flask_cors import CORS
+
+import numpy as np
 
 app = Flask(__name__)
 
@@ -39,7 +42,7 @@ bcrypt = Bcrypt(app)
 # app.url_map.strict_slashes = False
 
 DOCUMENTS_FOLDER = 'static/documents/'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = ['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif']
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -142,8 +145,8 @@ class DocumentsListResource(Resource):
         parser = models.Parser.objects(id=parserId).get()
         if user not in parser.owners + parser.editors + parser.viewers:
             abort(401, description="you don't have permission.")
-        parserRef = models.ParserRef(id=parserId, name=parser.name)
-        documents = models.Document.objects(parserRef=parserRef)
+        # parserRef = models.ParserRef(id=parserId, name=parser.name) no need cuz find only by id
+        documents = models.Document.objects(parserRef__id=parserId)
         # print(documents.to_json())
         return jsonify(results=documents)
 
@@ -165,40 +168,53 @@ class DocumentExtractResource(Resource):  # todo extract only Rule or Main or Al
     @jwt_required
     def get(self, documentId):   # todo need to check permission of parser
         document = models.Document.objects(id=documentId).get()
-        # load image
-        im = ImageOCR.Image.open(document.path) # ImageOCR.cv2.imread(document.path)
-        # load parser
-        # print(document.parserRef.id.id)
-        parserRules = models.Parser.objects(id=document.parserRef.id.id).get().parserRules
-        extractedRules = []
-        for rule in parserRules: # todo need to crop img
-            #  im_out = ImageOCR.preprocess(im)
-            text = RuleTypesExtract.extractProcess(rule, im)  # ImageOCR.pytesseract.image_to_string(im_out, lang='eng')  #+tha')
-            extractedRule = models.ExtractedRule()
-            extractedRule.name = rule.name
-            extractedRule.data = text
-            extractedRule.ruleType = rule.ruleType
-            extractedRules.append(extractedRule)
         # models.Document.objects(id=documentId).update_one(textOCR=text)
-        extractedData = models.ExtractedData()
+        extractedDataList = []
+        for imagePath in document.imagePaths:
+            # load image
+            im = ImageOCR.Image.open(imagePath) # ImageOCR.cv2.imread(document.path)
+            # load parser
+            # print(document.parserRef.id.id)
+            parserRules = models.Parser.objects(id=document.parserRef.id.id).get().parserRules
+            extractedRules = []
+            for rule in parserRules: # todo need to crop img
+                #  im_out = ImageOCR.preprocess(im)
+                data = RuleTypesExtract.extractProcess(rule, im)  # ImageOCR.pytesseract.image_to_string(im_out, lang='eng')  #+tha')
+                extractedRule = models.ExtractedRule()
+                extractedRule.name = rule.name
+                extractedRule.data = data
+                extractedRule.ruleType = rule.ruleType
+                extractedRules.append(extractedRule)
+            extractedData = models.ExtractedData()
+            extractedData.extractedRules = extractedRules
+            extractedDataList.append(extractedData)
         # extractedData.full_text = text # no need to extract fulltext anymore
-        extractedData.extractedRules = extractedRules
-        document.extracted = extractedData
+        document.extracted = extractedDataList
         document.save()
-        return jsonify(extractedData)
+        return jsonify(extractedDataList)
 
+class DocumentExtractPreviewResource(Resource):
+    def post(self, documentId):
+        document = models.Document.objects(id=documentId).get()
+        im = ImageOCR.Image.open(document.imagePaths[0])
+        parserRule_json = request.get_json(force=True)
+        # print(parserRule_json)
+        parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
+        text = RuleTypesExtract.extractProcess(parserRule, im)
+        return text
 
 class DocumentUploadResource(Resource):
     @jwt_required
     def post(self, documentId):   # todo need to check permission of parser
         # print(request.form, request.files)
         file = request.files['document-file']
-        parserId = request.form['parserId']
+        # parserId = request.form['parserId']
         fileName = secure_filename(file.filename)
-        filePath = os.path.join(app.config['DOCUMENTS_FOLDER'], parserId+'/'+documentId)
+        filePath = os.path.join(app.config['DOCUMENTS_FOLDER'], documentId)
         if not os.path.exists(filePath):
             os.makedirs(filePath)
             os.makedirs(filePath+'/images')
+            os.makedirs(filePath+'/hogs')
         fileFullPath = os.path.join(filePath, fileName)  # os.path.join(filePath, filename)
         file.save(fileFullPath)
         if fileName[-4:] == '.pdf':  # if it pdf
@@ -215,6 +231,18 @@ class DocumentUploadResource(Resource):
             if file.endswith(".jpg"):
                 imagePaths.append(os.path.join(filePath+'/images', file))
         document.imagePaths = imagePaths
+
+        count = len(imagePaths)
+
+        # Image featuer extraction
+        imageFeaturesPaths=[]
+        for i in range(count):
+            imageFeaturesPath = os.path.join(filePath, 'hogs/imageFeatures{}'.format(i))
+            Features = ImageFeatureExtraction.getFeaturesFromFile(imagePaths[i])
+            np.save(imageFeaturesPath, Features)
+            imageFeaturesPaths.append(imageFeaturesPath)
+        document.imageFeatures = imageFeaturesPaths
+
         document.save()
         # models.Document.objects(id=documentId).update_one(path=fileFullPath)
 
@@ -225,6 +253,10 @@ class DocumentResource(Resource):
     @jwt_required
     def get(self, documentId):
         document = models.Document.objects(id=documentId).get()   # todo need to check permission of parser
+        # for extract in document.extracted:
+        #     for data in extract.extractedRules:
+        #         print(data._cls)
+        #         data._cls = None
         return jsonify(document)
 
     @jwt_required
@@ -288,13 +320,19 @@ class DocumentsListByParsersListResource(Resource):
         parsers = models.Parser.objects(Q(owners=models.UserRef(username=current_user_username, id=current_user_id)) \
                                         | Q(editors=models.UserRef(username=current_user_username, id=current_user_id)) \
                                         | Q(viewers=models.UserRef(username=current_user_username, id=current_user_id)))
-        documents = []
+        documents = set()
         for parser in parsers:
-            parserRef = models.ParserRef(id=parser.id, name=parser.name)
-            docs = models.Document.objects(parserRef=parserRef)
+            # parserRef = models.ParserRef(id=parser.id)#, name=parser.name)
+            docs = models.Document.objects(parserRef__id=parser.id)
             if docs:
-                documents+=docs
-        return jsonify(results=documents)
+                documents |= set(docs)
+
+        # document list create by username
+        documents_by_userId = models.Document.objects(uploadBy__id=current_user_id)
+        documents |= set(documents_by_userId)
+
+        #print(len(documents))
+        return jsonify(results=list(documents))
 
 
 class ParserAddResource(Resource):
@@ -328,11 +366,14 @@ class ParserResource(Resource):
     def put(self, parserId):
         current_user = get_jwt_identity()  # todo need to check permission of parser
         current_user_username, current_user_id = current_user.split()
-        parser_json = request.get_json(force=True)
+        parser_json = request.get_json()
         parser = models.Parser.objects(id=parserId).get()
+        # print(parser_json.items())
         for (key, val) in parser_json.items():
             # print(key, val)
-            if key in ["owners", "editors", "viewers"]:
+            if key in ["editors", "viewers"]: # todo add viewer
+                parser[key] = [models.UserRef(username=username, id=models.User.objects(username=username).get().id) for username in val]
+            elif key in ["owners"]:
                 parser[key] = [models.UserRef.from_json(str(user).replace("'", "\"")) for user in val]
             elif key in ["parserRules"]:
                 parser[key] = [models.ParserRule.from_json(str(parserRule).replace("'", "\"")) for parserRule in val]
@@ -340,12 +381,21 @@ class ParserResource(Resource):
                 pass
             else:
                 parser[key] = val
+        # todo documents parseref change
+        documents = models.Document.objects(parserRef__id=parserId)
+        for doc in documents:
+            doc.parserRef.name = parser.name
+            doc.save()
         parser.save()
         return jsonify(parser)
 
     @jwt_required
     def delete(self, parserId):  # todo need to check permission of parser
         parser = models.Parser.objects(id=parserId)
+        docs = models.Document.objects(parserRef__id=parserId)
+        for doc in docs:
+            doc.parserRef = None
+            doc.save()
         parser.delete()
         return jsonify('deleted')
 
@@ -400,6 +450,11 @@ class ParserRulesResource(Resource):
         else:
             return abort(410, description="parserule do not  exists.")
 
+class UserRefResource(Resource):
+    def get(self, username): # todo need jwt requitr
+        user = models.User.objects(username=username).get()
+        return jsonify(models.UserRef(username=username, id=user.id))
+
 api.add_resource(PrivateResource, '/private')
 api.add_resource(DocumentAddResource, '/documents/add')
 api.add_resource(DocumentExtractResource, '/documents/extract/<string:documentId>')
@@ -411,6 +466,18 @@ api.add_resource(ParsersListResource, '/parsers/list')
 api.add_resource(DocumentsListByParsersListResource, '/documents/list')
 api.add_resource(ParserResource, '/parsers/<string:parserId>')
 api.add_resource(ParserRulesResource, '/parserrules/<string:parserId>')
+api.add_resource(UserRefResource, '/userRef/<string:username>')
+api.add_resource(DocumentExtractPreviewResource, '/parserrules/extract/<string:documentId>')
+
+def load_classification_model():
+    from sklearn.neighbors.nearest_centroid import NearestCentroid
+    nearestCentroid = NearestCentroid()
+    parsers = models.Parser.objects()
+    X_train=[]
+    y_train=[]
+
+    nearestCentroid.fit(X_train, y_train)
+    return nearestCentroid
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))

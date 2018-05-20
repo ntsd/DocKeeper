@@ -1,0 +1,96 @@
+train size: 1478
+test size 634
+train class count: 24
+test class count: 24
+_________sgd________round_ 1
+Total time: 56.19
+C:\Program Files\Python35\lib\site-packages\sklearn\metrics\classification.py:1113: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+0.938759157509
+_________NearestCentroid________round_ 1
+Total time: 2.64
+0.934623015873
+_________KNeighborsClassifier________round_ 1
+Total time: 184.18
+0.921975446429
+_________sgd________round_ 2
+Total time: 46.47
+0.934712817365
+_________NearestCentroid________round_ 2
+Total time: 2.64
+0.995128205128
+_________KNeighborsClassifier________round_ 2
+Total time: 171.24
+0.974193121693
+_________sgd________round_ 3
+Total time: 43.27
+0.971671075838
+_________NearestCentroid________round_ 3
+Total time: 2.62
+0.920734126984
+_________KNeighborsClassifier________round_ 3
+Total time: 140.65
+0.915587114498
+_________sgd________round_ 4
+Total time: 43.08
+0.99166941198
+_________NearestCentroid________round_ 4
+Total time: 2.82
+0.9728500666
+_________KNeighborsClassifier________round_ 4
+Total time: 151.29
+0.93574989825
+_________sgd________round_ 5
+Total time: 44.28
+0.990328421578
+_________NearestCentroid________round_ 5
+Total time: 2.81
+0.995532245532
+_________KNeighborsClassifier________round_ 5
+Total time: 165.45
+0.992626614578
+_________sgd________round_ 6
+Total time: 43.29
+0.92459421617
+_________NearestCentroid________round_ 6
+Total time: 2.68
+0.918510619497
+_________KNeighborsClassifier________round_ 6
+Total time: 164.18
+0.914329682317
+_________sgd________round_ 7
+Total time: 42.90
+0.925561783214
+_________NearestCentroid________round_ 7
+Total time: 2.64
+0.918297184841
+_________KNeighborsClassifier________round_ 7
+Total time: 432.05
+0.927835053835
+_________sgd________round_ 8
+Total time: 548.37
+0.988649508386
+_________NearestCentroid________round_ 8
+Total time: 2.63
+0.939034992785
+_________KNeighborsClassifier________round_ 8
+Total time: 155.67
+0.925906685907
+_________sgd________round_ 9
+Total time: 42.87
+0.931737891738
+_________NearestCentroid________round_ 9
+Total time: 2.65
+0.974305555556
+_________KNeighborsClassifier________round_ 9
+Total time: 580.47
+0.971112573099
+_________sgd________round_ 10
+Total time: 42.54
+0.968303571429
+_________NearestCentroid________round_ 10
+Total time: 2.56
+0.962103174603
+_________KNeighborsClassifier________round_ 10
+Total time: 551.88
+0.982301939253
