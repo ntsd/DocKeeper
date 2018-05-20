@@ -41,7 +41,6 @@ if __name__ == '__main__':
     #clf = SGDClassifier(loss="hinge", penalty="l2")
 
     new_dataset=0
-
     if new_dataset:
         dataset_directory = r'C:\Users\Jiravat\Desktop\git\DocKeeper\documentClassification\dataset' #r'D:\dataset\rvl-cdip\images'
         X = []
@@ -84,7 +83,7 @@ if __name__ == '__main__':
     print('test size', num_test)
     print('train class count:', len(np.unique(y_train_data)))
     print('test class count:', len(np.unique(y_test_data)))
-    # break
+
     k_fold_tune=0
     if k_fold_tune:
         from sklearn.model_selection import KFold
@@ -159,12 +158,18 @@ if __name__ == '__main__':
         nearestcentroid_eval = np.asarray(nearestcentroid_eval)
         np.savetxt("nearestcentroid_eval.csv", nearestcentroid_eval, delimiter=",")
 
-    test_acc=1
-    if test_acc:
+    test_fulldata=1
+    if test_fulldata:
         from sklearn.metrics import f1_score
         sgd_score=[]
+        sgd_train_time=[]
+        sgd_test_time=[]
         nearestcentroid_score=[]
+        nearestcentroid_train_time=[]
+        nearestcentroid_test_time=[]
         kneighbors_score=[]
+        kneighbors_train_time=[]
+        kneighbors_test_time=[]
         n_round=10
         for round_i in range(1, n_round+1):
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=round_i,
@@ -172,38 +177,75 @@ if __name__ == '__main__':
             print('_________sgd________round_',round_i)
             start = time.clock()
 
-            sgd = SGDClassifier(alpha=1e-5)
-            sgd.fit(X_train, y_train)
-            predict_y = sgd.predict(X_test)
-            print("Total time: {0:.2f}".format(time.clock()-start))
+            sgd = SGDClassifier(alpha=1e-5)   # model
+            sgd.fit(X_train, y_train)  # fit
 
-            f1Score = f1_score(y_test, predict_y, average='macro')
-            print(f1Score)  #F1 Score = 2*(Recall * Precision) / (Recall + Precision)
+            train_time = time.clock()-start
+            sgd_train_time.append(train_time)
+            print("Total time: {0:.2f}".format(train_time))
+            start = time.clock()
+
+            predict_y = sgd.predict(X_test)  # predict
+
+            test_time = time.clock()-start
+            sgd_test_time.append(test_time)
+            print("Total time: {0:.2f}".format(test_time))
+
+            f1Score = f1_score(y_test, predict_y, average='macro')  # score
+            print(f1Score)  # F1 Score = 2*(Recall * Precision) / (Recall + Precision)
             sgd_score.append(f1Score)
 
             print('_________NearestCentroid________round_', round_i)
             start = time.clock()
+
             nearestCentroid = NearestCentroid()
-            nearestCentroid.fit(X_train, y_train)
+            nearestCentroid.fit(X_train, y_train)  # fit
 
-            predict_y = nearestCentroid.predict(X_test)
-            print("Total time: {0:.2f}".format(time.clock()-start))
+            train_time = time.clock()-start
+            nearestcentroid_train_time.append(train_time)
+            print("Total time: {0:.2f}".format(train_time))
+            start = time.clock()
 
-            f1Score = f1_score(y_test, predict_y, average='macro')
+            predict_y = nearestCentroid.predict(X_test)   # predict
+
+            test_time = time.clock()-start
+            nearestcentroid_test_time.append(test_time)
+            print("Total time: {0:.2f}".format(test_time))
+
+            f1Score = f1_score(y_test, predict_y, average='macro')  # score
             print(f1Score)
             nearestcentroid_score.append(f1Score)
 
             print('_________KNeighborsClassifier________round_', round_i)
             start = time.clock()
-            kneighbors = KNeighborsClassifier(n_neighbors=1)
-            kneighbors.fit(X_train, y_train)
-            predict_y = kneighbors.predict(X_test)
-            print("Total time: {0:.2f}".format(time.clock()-start))
 
-            f1Score = f1_score(y_test, predict_y, average='macro')
+            kneighbors = KNeighborsClassifier(n_neighbors=1)  # model
+            kneighbors.fit(X_train, y_train)  # fit
+
+            train_time = time.clock()-start
+            kneighbors_train_time.append(train_time)
+            print("Total time: {0:.2f}".format(train_time))
+            start = time.clock()
+
+            predict_y = kneighbors.predict(X_test)  # predict
+
+            test_time = time.clock()-start
+            kneighbors_test_time.append(test_time)
+            print("Total time: {0:.2f}".format(test_time))
+
+            f1Score = f1_score(y_test, predict_y, average='macro')  # score
             print(f1Score)
             kneighbors_score.append(f1Score)
 
         round_score = [[sgd_score[i], nearestcentroid_score[i], kneighbors_score[i]]for i in range(n_round)]
         round_score = np.asarray(round_score)
         np.savetxt("round_score.csv", round_score, delimiter=",")
+
+        train_times = [[sgd_train_time[i], nearestcentroid_train_time[i], kneighbors_train_time[i]]for i in range(n_round)]
+        train_times = np.asarray(train_times)
+        np.savetxt("train_times.csv", train_times, delimiter=",")
+
+        test_times = [[sgd_test_time[i], nearestcentroid_test_time[i], kneighbors_test_time[i]]for i in range(n_round)]
+        test_times = np.asarray(test_times)
+        np.savetxt("test_times.csv", test_times, delimiter=",")
+

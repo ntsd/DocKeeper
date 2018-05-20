@@ -25,8 +25,8 @@
 
             <b-form-group id="" label="Select File:">
               <!-- Customized labels -->
-              <b-form-file id="file_input2" v-model="form.file" placeholder="Choose a file..."></b-form-file>
-               {{form.file && form.file.name}}
+              <b-form-file id="file_input2" v-model="form.file" placeholder="Choose a file..." plain></b-form-file>
+              <!--<div class="mt-3">Selected file: {{form.file && form.file.name}}</div>-->
             </b-form-group>
 
             <b-button @click.stop="saveDocumentButton" type="button" variant="primary">Save</b-button>

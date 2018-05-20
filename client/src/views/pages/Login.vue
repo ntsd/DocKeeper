@@ -21,9 +21,9 @@
                     <div class="col-6">
                       <button class="btn btn-primary px-4" type="submit" id="signin_btn">Login</button>
                     </div>
-                    <div class="col-6 text-right">
-                      <button type="button" class="btn btn-link px-0">Forgot password?</button>
-                    </div>
+                    <!--<div class="col-6 text-right">-->
+                      <!--<button type="button" class="btn btn-link px-0">Forgot password?</button>-->
+                    <!--</div>-->
                   </div>
                 </form>
               </div>
