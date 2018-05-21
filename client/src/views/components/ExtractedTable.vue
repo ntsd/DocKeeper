@@ -1,4 +1,5 @@
 <template>
+  <div>
   <b-table striped hover show-empty
            :items=extractedRules
            :fields="fields"
@@ -22,11 +23,15 @@
         </table>
       </div>
       <div v-if="row.item.ruleType === 'boundary'">
-        {{row.item.data}}
+        <!--<label v-on:dblclick="row.item.edit = true"> {{row.item.data}} </label>-->
+        <input  type="text"
+                v-model="row.item.data"
+        >
       </div>
 
     </template>
   </b-table>
+
   <!--<b-card header="Extracted Data">-->
     <!--<b-nav pills v-b-scrollspy:nav-scroller>-->
       <!--<li v-for="(extractData, index) in extractedDataList">-->
@@ -42,6 +47,7 @@
       <!--</div>-->
     <!--</div>-->
   <!--</b-card>-->
+  </div>
 </template>
 
 <script>
@@ -58,6 +64,9 @@
           data: { label: 'Extracted Data', sortable: true,}
         },
         // extractedRulesList: this.extractedRules,
+        modalEdit:{
+          data:''
+        }
       }
     },
     mounted(){

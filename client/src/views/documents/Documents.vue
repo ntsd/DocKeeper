@@ -4,13 +4,13 @@
       <div class="col-12">
         <!--<b-card header="<i class='fa fa-align-justify'></i> Documents Table">-->
           <div class="my-1 row">
-            <div class="col-md-6">
+            <div class="col-md-5">
               <b-form-group horizontal label="Rows per page" :label-cols="6">
                 <b-form-select :options="pageOptions" v-model="perPage" />
               </b-form-group>
             </div>
-            <div class="col-md-6">
-              <b-form-group horizontal label="Filter" :label-cols="3">
+            <div class="col-md-7">
+              <b-form-group horizontal label="Filter" :label-cols="2">
                 <b-input-group>
                   <b-form-input v-model="filter" placeholder="Type to Search" />
                   <b-btn @click="filter = ''">Clear</b-btn>
