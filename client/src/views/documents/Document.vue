@@ -94,21 +94,50 @@
       exportCSV(){
         const items = this.document.extracted[0].extractedRules
         const replacer = (key, value) => value === null ? '' : value // specify how you want to handle null values here
-        const header = Object.keys(items[0])
-        let many_items = []
-        for(let i=0;i<this.document.extracted.length;i++){
-          for(let j=0;j<this.document.extracted[i].extractedRules.length;j++){
-            if(this.document.extracted[i].extractedRules[j].ruleType != 'table'){
-              many_items.push(this.document.extracted[i].extractedRules[j])
-            }
 
-          }
-
+        let headSet = []
+        let dataDict={}
+        for(let i=0;i<items.length;i++){
+          headSet.push(items[i].name)
+          dataDict[items[i].name] = []
         }
-        console.log(many_items)
-        let csv = many_items.map(row => header.map(fieldName => JSON.stringify(row[fieldName].replace(',', ''), replacer)).join(','))
-        csv.unshift(header.join(','))
-        csv = csv.join('\r\n')
+        // console.log(headSet)
+        let docExtracts = this.document.extracted
+        for(let i=0;i<docExtracts.length;i++){
+          // headSet.push(items[i].name)
+          let extractRules = this.document.extracted[i].extractedRules
+          for(let j=0;j<extractRules.length;j++){
+            // headSet.push(items[i].name)
+            dataDict[extractRules[j].name].push(extractRules[j].data.replace(/,/g,''))
+          }
+        }
+        console.log(dataDict)
+        let csv_list=[]
+        csv_list.push(headSet.join(','))
+        for(let i=0;i<dataDict[headSet[0]].length;i++) {
+          let rows=[]
+          for(let j=0;j<headSet.length;j++) {
+            rows.push(dataDict[headSet[j]][i])
+          }
+          csv_list.push(rows.join(','))
+        }
+        console.log(csv_list)
+        let csv = csv_list.join('\r\n')
+
+
+        // const header = Object.keys(items[0])
+        // let many_items = []
+        // for(let i=0;i<this.document.extracted.length;i++){
+        //   for(let j=0;j<this.document.extracted[i].extractedRules.length;j++){
+        //     if(this.document.extracted[i].extractedRules[j].ruleType != 'table'){
+        //       many_items.push(this.document.extracted[i].extractedRules[j])
+        //     }
+        //   }
+        // }
+        // console.log(many_items)
+        // let csv = many_items.map(row => header.map(fieldName => JSON.stringify(row[fieldName].replace(',', ''), replacer)).join(','))
+        // csv.unshift(header.join(','))
+        // csv = csv.join('\r\n')
 
         console.log(csv)
 
