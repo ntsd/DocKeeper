@@ -13,9 +13,9 @@
               <b-form-group horizontal label="Filter" :label-cols="3">
                 <b-input-group>
                   <b-form-input v-model="filter" placeholder="Type to Search" />
-                  <b-input-group-button>
+                  <b-input-group>
                     <b-btn @click="filter = ''">Clear</b-btn>
-                  </b-input-group-button>
+                  </b-input-group>
                 </b-input-group>
               </b-form-group>
             </div>
@@ -86,6 +86,11 @@
                               required>
                 </input>
               </b-form-group>
+              <b-form-group label="Recommend Parser:">
+                <!--{{modalEdit}}-->
+                <b-button @click="recommendButton(modalEdit._id.$oid)" variant="danger">Recommend</b-button>
+                <div v-if="recommendName!=''"><h2>your recommend is : {{recommendName}}</h2></div>
+              </b-form-group>
               <b-form-group label="Parser:">
                 <v-select
                   label="name"
@@ -111,11 +116,15 @@
 </template>
 
 <script>
+  import Button from "bootstrap-vue/es/components/button/button";
+
   const documentList = [ ]
 
   import { mapState, mapActions } from 'vuex'
 
   import vSelect from "vue-select"
+
+  import api from "../../api/index"
 
   export default {
     computed: {
@@ -148,12 +157,14 @@
         sortDesc: false,
         filter: null,
         modalEdit: {
+          id:null,
           name: '',
           parserRef: null,
           uploadBy:'',
           updated_at:''
         },
-        modalDelete: null
+        modalDelete: null,
+        recommendName: ''
       }
     },
     methods: {
@@ -163,6 +174,20 @@
         'deleteDocument',
         'updateDocument'
       ]),
+      consoleCallback(val, tag) {
+        console.dir(JSON.stringify(val))
+      },
+      recommendButton (documentId){
+        api.recommendDocument(documentId).then((response)=>{
+          const json = response.data
+          console.log(json.predictParserName, this.parserList.find(x => x.name === json.predictParserName))
+
+          this.modalEdit.parserRef = this.parserList.find(x => x.name === json.predictParserName)
+          this.recommendName = json.predictParserName
+        }).catch((e) => {
+          console.log(e)
+        })
+      },
       handleOk (evt) {
         this.modalEdit.parserRef = {
           "id": {
@@ -173,6 +198,7 @@
         this.updateDocument([this.modalEdit._id.$oid, this.modalEdit])
       },
       editButton(item, button){
+        this.recommendName = ''
         this.modalEdit = JSON.parse(JSON.stringify(item)) // for deep
       },
       onFiltered (filteredItems) {
@@ -192,6 +218,7 @@
       }
     },
     components: {
+      Button,
       vSelect
     },
   }

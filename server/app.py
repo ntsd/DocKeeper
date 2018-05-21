@@ -163,6 +163,54 @@ class DocumentAddResource(Resource):
         document.save()
         return jsonify(document)
 
+from sklearn.neighbors.nearest_centroid import NearestCentroid
+
+class DocumentRecommendResource(Resource):
+    @jwt_required
+    def get(self, documentId):
+        nearestCentroid = NearestCentroid()
+        X_train=[]
+        y_train=[]
+
+        current_user = get_jwt_identity()
+        current_user_username = current_user.split()[0]
+        current_user_id = current_user.split()[1]
+        parsers = models.Parser.objects(Q(owners=models.UserRef(username=current_user_username, id=current_user_id)) \
+                                        | Q(editors=models.UserRef(username=current_user_username, id=current_user_id)) \
+                                        | Q(viewers=models.UserRef(username=current_user_username, id=current_user_id)))
+
+        # parserDict={}
+        for parser in parsers:
+            docs = models.Document.objects(parserRef__id=parser.id)
+            for doc in docs:
+                for featurePath in doc.imageFeatures:
+                    # print(featurePath)
+                    X_train.append(np.load(featurePath))
+                    y_train.append(parser.name)
+            # parserDict[parser.name] = parser
+
+        nearestCentroid.fit(X_train, y_train)
+
+        document = models.Document.objects(id=documentId).get()
+
+        Features = ImageFeatureExtraction.getFeaturesFromFile(document.imagePaths[0])
+        predict = nearestCentroid.predict(Features)[0]
+        # print(predict, parserDict[predict])
+        return jsonify(predictParserName=predict) #, predictParser=parserDict[predict])
+
+    @jwt_required
+    def post(self): #todo
+        file = request.files['document-file']
+        fileName = secure_filename(file.filename)
+        fileFullPath = os.path.join('tmp/',fileName)
+        file.save(fileFullPath)
+        if fileName[-4:] == '.pdf':  # if it pdf
+            jpgFilePath = fileFullPath[:-4]+'.jpg'
+            PDF2Image.pdf2image(fileFullPath, jpgFilePath)  # convert pdf to image
+        else:
+            jpgFilePath = fileFullPath
+        Features = ImageFeatureExtraction.getFeaturesFromFile(jpgFilePath)
+
 
 class DocumentExtractResource(Resource):  # todo extract only Rule or Main or All for 1 doc
     @jwt_required
@@ -200,8 +248,12 @@ class DocumentExtractPreviewResource(Resource):
         parserRule_json = request.get_json(force=True)
         # print(parserRule_json)
         parserRule = models.ParserRule.from_json(str(parserRule_json).replace("'", "\""))
-        text = RuleTypesExtract.extractProcess(parserRule, im)
-        return text
+        previewExtractRule = models.ExtractedRule()
+        previewExtractRule.name = parserRule.name
+        previewExtractRule.data = RuleTypesExtract.extractProcess(parserRule, im)
+        # print(previewExtractRule.data)
+        previewExtractRule.ruleType = parserRule.ruleType
+        return jsonify([previewExtractRule])
 
 class DocumentUploadResource(Resource):
     @jwt_required
@@ -240,7 +292,7 @@ class DocumentUploadResource(Resource):
             imageFeaturesPath = os.path.join(filePath, 'hogs/imageFeatures{}'.format(i))
             Features = ImageFeatureExtraction.getFeaturesFromFile(imagePaths[i])
             np.save(imageFeaturesPath, Features)
-            imageFeaturesPaths.append(imageFeaturesPath)
+            imageFeaturesPaths.append(imageFeaturesPath+'.npy')
         document.imageFeatures = imageFeaturesPaths
 
         document.save()
@@ -460,6 +512,7 @@ api.add_resource(DocumentAddResource, '/documents/add')
 api.add_resource(DocumentExtractResource, '/documents/extract/<string:documentId>')
 api.add_resource(DocumentUploadResource, '/documents/upload/<string:documentId>')
 api.add_resource(DocumentsListResource, '/documents/list/<string:parserId>')
+api.add_resource(DocumentRecommendResource, '/documents/recommend/<string:documentId>')
 api.add_resource(DocumentResource, '/documents/<string:documentId>')
 api.add_resource(ParserAddResource, '/parsers/add')
 api.add_resource(ParsersListResource, '/parsers/list')

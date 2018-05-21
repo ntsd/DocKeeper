@@ -80,6 +80,9 @@ export default {
           }}
     )
   },
+  recommendDocument : (documentId) => {
+    return DocumentResource.get({id:'recommend/'+documentId})
+  },
 
   extractDocument : (documentId) => {
     // console.log('extract', documentId)
@@ -90,7 +93,7 @@ export default {
     return DocumentResource.get({id:'list/'+parserId})
   },
 
-  getDocumentsByUser : () => {
+  getDocumentsByUser : () => { 
     return DocumentResource.get({id:'list'})
   },
 

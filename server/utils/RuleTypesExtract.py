@@ -21,7 +21,36 @@ def boundaryExtract(data, im, charWhitelist):
                                                     config='')
     return text
 
-def tableExtract(linesX, im, charWhitelist):
+def tableExtract2(data, im, charWhitelist):
+    linesX=data['linesX']
+    lineY=data['lineY']
+    #print(lineY)
+    height, width = im.size
+    cols = []
+    linesX=sorted(linesX)
+    for c in range(len(linesX)-1):
+        crop_img2 = im.crop((linesX[c], lineY, linesX[c+1], height))
+        # crop_img2.show()
+        if charWhitelist:
+            text = ImageOCR.pytesseract.image_to_string(crop_img2,
+                                                          lang='eng',
+                                                          config='--oem 0 -c tessedit_char_whitelist='+charWhitelist)
+        else:
+            text = ImageOCR.pytesseract.image_to_string(crop_img2,
+                                                          lang='eng',
+                                                        config='')
+        x=[i for i in text.split('\n')if i!='']
+        if len(x)>0:
+            cols.append(x)
+    min_len = min([len(c) for c in cols])
+    rows = []
+    for i in range(min_len):
+        rows.append([c[i] for c in cols])
+    print(cols, rows)
+    return rows
+
+def tableExtract(data, im, charWhitelist):
+    linesX=data['linesX']
     height, width = im.size
     minX, maxX = min(linesX), max(linesX)
     crop_img = im.crop((minX, 0, maxX, height)) # todo
@@ -31,7 +60,7 @@ def tableExtract(linesX, im, charWhitelist):
 
     # Convert RGB to BGR
     # print(open_cv_image.shape)
-    # open_cv_image = open_cv_image[:, :, ::-1]
+    open_cv_image = open_cv_image[:, :, ::-1].copy()
 
     #HoughLines
     # blur = cv2.bilateralFilter(open_cv_image,9,75,75)
@@ -83,4 +112,4 @@ def extractProcess(rule, im):
     if rule.ruleType == "boundary":
         return boundaryExtract(rule.data, im, rule.charWhitelist)
     elif rule.ruleType == "table":
-        return tableExtract(rule.data, im, rule.charWhitelist)
+        return tableExtract2(rule.data, im, rule.charWhitelist)

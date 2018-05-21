@@ -106,11 +106,27 @@
 
         }
         console.log(many_items)
-        let csv = many_items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
+        let csv = many_items.map(row => header.map(fieldName => JSON.stringify(row[fieldName].replace(',', ''), replacer)).join(','))
         csv.unshift(header.join(','))
         csv = csv.join('\r\n')
 
         console.log(csv)
+
+        var file = new Blob([csv], {type: 'text/plain'});
+        if (window.navigator.msSaveOrOpenBlob) // IE10+
+          window.navigator.msSaveOrOpenBlob(file, this.document.name+'.csv');
+        else { // Others
+          var a = document.createElement("a"),
+            url = URL.createObjectURL(file);
+          a.href = url;
+          a.download = this.document.name+'.csv';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+          }, 0);
+        }
       },
       copyToClipboard(){
         const copyTextarea = document.querySelector('.js-copytextarea');

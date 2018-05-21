@@ -57,9 +57,9 @@
               <b-form-group horizontal label="Filter" :label-cols="3">
                 <b-input-group>
                   <b-form-input v-model="documentsTable.filter" placeholder="Type to Search" />
-                  <b-input-group-button>
+                  <b-input-group>
                     <b-btn @click="documentsTable.filter = ''">Clear</b-btn>
-                  </b-input-group-button>
+                  </b-input-group>
                 </b-input-group>
               </b-form-group>
             </div>

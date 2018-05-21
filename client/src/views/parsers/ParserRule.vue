@@ -55,13 +55,16 @@
                   <draw-rectangle-board v-bind:imagesrc="sampleDocumentUrl" :rect="rect"></draw-rectangle-board>
                 </div>
                 <div v-else-if="parserRule.ruleType==='table'">
-                  <TableDrawBoard v-bind:imagesrc="sampleDocumentUrl" :linesX="linesX"></TableDrawBoard>
+                  <TableDrawBoard v-bind:imagesrc="sampleDocumentUrl" :tableData="tableData"></TableDrawBoard>
                 </div>
               </b-form-group>
               <b-form-group>
                 <b-button @click.stop="extractPreviewButton()" type="button" >Extract Preview</b-button>
-                {{extractPreview}}
-                <!--<div v-if="parserRule.ruleType === 'table'"> &lt;!&ndash; todo &ndash;&gt;-->
+                <!--{{extractPreview}}-->
+                <div class="col-12" v-if="extractPreview && extractPreview.length !== 0">
+                  <ExtractedTable :extractedRules="extractPreview"></ExtractedTable>
+                </div>
+                <!--<div v-if="extractPreview && extractPreview.ruleType === 'table'"> &lt;!&ndash; todo &ndash;&gt;-->
                   <!--<table class="table">-->
                     <!--<thead>-->
                     <!--<tr>-->
@@ -75,7 +78,7 @@
                     <!--</tbody>-->
                   <!--</table>-->
                 <!--</div>-->
-                <!--<div v-if="parserRule.ruleType === 'boundary'">-->
+                <!--<div v-if="extractPreview && extractPreview.ruleType === 'boundary'">-->
                   <!--{{extractPreview.data}}-->
                 <!--</div>-->
               </b-form-group>
@@ -106,6 +109,8 @@
 
   import api from "../../api/index"
 
+  import ExtractedTable from '../components/ExtractedTable.vue'
+
   export default {
     computed: {
       ...mapState({
@@ -131,7 +136,7 @@
           this.rect = this.parserRule.data
         }
         else if(this.parserRule.ruleType === 'table'){
-          this.linesX = this.parserRule.data
+          this.tableData = this.parserRule.data
         }
 
       }
@@ -165,7 +170,10 @@
         apiRoot: API_ROOT,
         sampleDocumentUrl:'',
         customsCharWhitelist: '',
-        linesX: [],
+        tableData: {
+          linesX: [],
+          lineY: 0
+        },
         extractPreview: null
       }
     },
@@ -179,7 +187,7 @@
           this.parserRule.data = this.rect
         }
         else if(this.parserRule.ruleType === 'table'){
-          this.parserRule.data = this.linesX
+          this.parserRule.data = this.tableData
         }
         // console.log(this.parserRule.data)
         if(this.parserRule.charWhitelist === 'customs'){
@@ -192,7 +200,8 @@
       },
       clearDraw(){
         this.rect = {x:0,y:0,w:0,h:0}
-        this.linesX = []
+        this.tableData.linesX = []
+        this.tableData.lineY = 0
         if(this.parserRule.ruleType==="boundary"){
           this.parserRule.ruleType = 'table'
         }else{
@@ -205,7 +214,7 @@
           parserRuleBackUp.data = this.rect
         }
         else if(parserRuleBackUp.ruleType === 'table'){
-          parserRuleBackUp.data = this.linesX
+          parserRuleBackUp.data = this.tableData
         }
         // console.log(this.parserRule.data)
         if(parserRuleBackUp.charWhitelist === 'customs'){
@@ -222,7 +231,8 @@
     components: {
       vSelect,
       'draw-rectangle-board':RectangleDrawBoard,
-      'TableDrawBoard':TableDrawBoard
+      'TableDrawBoard':TableDrawBoard,
+      'ExtractedTable':ExtractedTable
     },
     updated(){
       //console.log(this.sampleDocumentUrl)
