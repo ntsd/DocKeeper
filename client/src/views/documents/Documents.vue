@@ -82,14 +82,13 @@
               <b-form-group label="Document Name:">
                 <input type='text' v-model="modalEdit.name"
                               required>
-                </input>
               </b-form-group>
-              <b-form-group label="Recommend Parser:">
+              <b-form-group label="Recommend Category:">
                 <!--{{modalEdit}}-->
                 <b-button @click="recommendButton(modalEdit._id.$oid)" variant="danger">Recommend</b-button>
                 <div v-if="recommendName!=''"><h2>your recommend is : {{recommendName}}</h2></div>
               </b-form-group>
-              <b-form-group label="Parser:">
+              <b-form-group label="Category:">
                 <v-select
                   label="name"
                   :options=this.parserList
@@ -142,7 +141,7 @@
 //        items: items,
         fields: {
           name: { label: 'File Name', sortable: true },
-          parserRef: { label: 'Parser', sortable: true},
+          parserRef: { label: 'Category', sortable: true},
           uploadBy: { label: 'upload by', sortable: true, 'class': 'text-center' },
           updated_at: { label: 'last update',sortable: true },
           actions: { label: 'Actions' }

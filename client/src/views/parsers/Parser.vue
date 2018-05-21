@@ -2,7 +2,7 @@
   <div class="animated fadeIn">
     <div class="row">
       <div class="col-4">
-        <b-card header="<i class='fa fa-align-justify'></i> Parser Details">
+        <b-card header="<i class='fa fa-align-justify'></i> Category Details">
           Name : {{parser.name}} <br>
           Description : {{parser.description}} <br>
           Owner: {{parser.owners[0].username}} <br>
@@ -12,7 +12,7 @@
         </b-card>
       </div>
       <div class="col-8">
-        <b-card header="<i class='fa fa-align-justify'></i> Parser Rules">
+        <b-card header="<i class='fa fa-align-justify'></i> Extraction Rules">
           <div class="row my-1">
             <div class="col-sm-8">
               <b-pagination :total-rows=parser.parserRules.length :per-page=5 v-model="parserRulesTable.currentPage" />
@@ -181,7 +181,7 @@
         documentsTable: {
           fields: {
             name: { label: 'File Name', sortable: true },
-            parserRef: { label: 'Parser', sortable: true},
+            parserRef: { label: 'Category', sortable: true},
             uploadBy: { label: 'upload by', sortable: true, 'class': 'text-center' },
             updated_at: { label: 'last update',sortable: true },
             actions: { label: 'Actions' }

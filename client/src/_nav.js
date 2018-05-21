@@ -14,7 +14,7 @@ export default {
       name: 'Menu'
     },
     {
-      name: 'Parsers',
+      name: 'Category',
       url: '/parsers',
       icon: 'icon-star'
     },

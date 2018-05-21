@@ -4,15 +4,15 @@
       <div class="col-12">
         <b-card>
           <div slot="header">
-            <i class='fa fa-align-justify'></i> New Parser
+            <i class='fa fa-align-justify'></i> New Category
           </div>
           <b-form @reset="onReset" v-if="show">
-            <b-form-group id="" label="Parser Name:">
+            <b-form-group id="" label="Category Name:">
               <b-form-input id="nameInput"
                             type="text"
                             v-model="form.name"
                             required
-                            placeholder="Enter Parser name">
+                            placeholder="Enter Category name">
               </b-form-input>
             </b-form-group>
             <b-form-group id="" label="Description:">

@@ -24,7 +24,7 @@
               <b-pagination :total-rows=parserList.length :per-page="perPage" v-model="currentPage" />
             </div>
             <div class="col-sm-4 text-md-right">
-              <router-link to="newparser"><b-button @click="">New Parser</b-button></router-link>
+              <router-link to="newparser"><b-button @click="">New Category</b-button></router-link>
               <b-button :disabled="!sortBy" @click="sortBy = null">Clear Sort</b-button>
             </div>
           </div>
@@ -81,11 +81,11 @@
                    @ok="handleOk"
           >
             <form >
-              <b-form-group id="" label="Parser Name:">
+              <b-form-group id="" label="Category Name:">
                 <input type="text"
                               v-model="modalEdit.name"
                               required
-                              placeholder="Enter Parser name">
+                              placeholder="Enter Category name">
               </b-form-group>
               <b-form-group id="" label="Description:">
                 <b-form-input id="descriptionInput"
@@ -142,7 +142,7 @@
       return {
 //        items: parserList,
         fields: {
-          name: { label: 'parser name', sortable: true },
+          name: { label: 'Category name', sortable: true },
           owners: { label: 'owners', sortable: true, 'class': 'text-center' },
           tags: { label: 'tags', sortable: true },
           updated_at: {label: 'last updated', sortable: true },

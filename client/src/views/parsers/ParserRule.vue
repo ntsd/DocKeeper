@@ -4,7 +4,7 @@
       <div class="col-12">
         <b-card header="<i class='fa fa-align-justify'></i> Parser Rule">
           <b-form @reset="onReset" >
-            <b-form-group id="" label="Parser Name:">
+            <b-form-group id="" label="Extraction Name:">
               <b-form-input id="nameInput"
                             type="text"
                             v-model="parserRule.name"
@@ -85,7 +85,7 @@
               <b-button @click.stop="saveParserRuleButton" type="button" variant="primary">Submit</b-button>
             </div>
             <div v-else>
-              <h2 style="color: red">Pls Add Sample Document To Create Parser Rule</h2>
+              <h2 style="color: red">Pls Add Sample Document To Create Extraction Rule</h2>
             </div>
 
 

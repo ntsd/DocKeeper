@@ -15,7 +15,7 @@
                             placeholder="Enter Document name">
               </b-form-input>
             </b-form-group>
-            <b-form-group id="" label="Parser:">
+            <b-form-group id="" label="Category:">
               <v-select
                 label="name"
                 :options=this.parserList
