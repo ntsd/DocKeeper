@@ -507,6 +507,7 @@ class UserRefResource(Resource):
         user = models.User.objects(username=username).get()
         return jsonify(models.UserRef(username=username, id=user.id))
 
+
 api.add_resource(PrivateResource, '/private')
 api.add_resource(DocumentAddResource, '/documents/add')
 api.add_resource(DocumentExtractResource, '/documents/extract/<string:documentId>')
