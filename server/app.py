@@ -319,6 +319,10 @@ class DocumentResource(Resource):
             # print(key, val)
             if key == "parserRef":
                 document[key] = models.ParserRef.from_json(str(val).replace("'", "\""))
+            elif key == "extracted":
+                # print(val)
+                document[key] = [models.ExtractedData.from_json(str(v).replace("'", "\"")) for v in val]
+                # print(document[key])
             elif key in ["uploadBy"]:
                 document[key] = models.UserRef.from_json(str(val).replace("'", "\""))
             elif key in ["updated_at", "created_at", "_id"]:

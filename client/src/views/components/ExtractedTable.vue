@@ -24,9 +24,9 @@
       </div>
       <div v-if="row.item.ruleType === 'boundary'">
         <!--<label v-on:dblclick="row.item.edit = true"> {{row.item.data}} </label>-->
-        <input  type="text"
-                v-model="row.item.data"
-        >
+        <textarea  type="text"
+                v-model="row.item.data" style="resize: vertical;" cols="40"
+        ></textarea>
       </div>
 
     </template>

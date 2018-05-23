@@ -8,3 +8,5 @@ server/static/documents/
 server/utils/__pycache__/
 
 server/__pycache__/
+
+nsc/Thumbs\.db

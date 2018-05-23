@@ -6,7 +6,7 @@
           Name: {{document.name}} <br>
           Upload By: {{document.uploadBy.username}} <br>
           Updated At: {{moment(document.created_at.$date).format('YYYY-MM-DD')}} <br>
-          Path: {{apiRoot+ document.path}} <br>
+          Path: <a :href="apiRoot+ document.path">{{apiRoot+ document.path}}</a> <br>
         </b-card>
       </div>
       <div class="col-8">
@@ -29,7 +29,10 @@
         </b-card>
       </div>
       <div class="col-12">
-        <b-card no-body header="<i class='fa fa-align-justify'></i> Preview">
+        <b-card no-body header-tag="header" >
+          <div slot="header">
+            <i class='fa fa-align-justify'></i> Preview <b-btn @click='saveButton' style='float: right' danger>save</b-btn>
+          </div>
           <b-tabs card>
             <!--<b-tab title="Tab 1" active>-->
               <!--Tab Contents 1-->
@@ -44,6 +47,7 @@
                 <!--{{document.extracted[index].extractedRules}}-->
                 <ExtractedTable :extractedRules="document.extracted[index].extractedRules"></ExtractedTable>
               </div>
+              <hr>
               <div class="col-12">
                 <img v-bind:src="apiRoot + imagePath" class="img-fluid" alt="Responsive image" ref="imagePreview"/>
               </div>
@@ -64,6 +68,8 @@
   import ExtractedTable from '../components/ExtractedTable.vue'
 
   import {API_ROOT} from "../../config"
+
+  import api from "../../api/index"
 
   export default {
     computed: {
@@ -88,6 +94,10 @@
         'getDocument',
         'extractDocument'
       ]),
+      saveButton(){
+        console.log(this.document)
+        api.putDocument(this.document._id.$oid, this.document)
+      },
       extract(documentId){
         this.extractDocument(documentId)
       },
